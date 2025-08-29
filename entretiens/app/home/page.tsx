@@ -2,6 +2,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+type Utilisateur = {
+  id: number;
+  created_at: string;
+  nom: string;
+  prenom: string;
+  role: number;
+  auth_id: string;
+  email: string;
+};
+
 function Menubar({ email, onLogout }: { email: string; onLogout: () => void }) {
   return (
     <nav style={{
@@ -26,15 +36,39 @@ function Menubar({ email, onLogout }: { email: string; onLogout: () => void }) {
   );
 }
 
+
 export default function HomePage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<number | null>(null);
+  const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserEmail(data.user?.email || null);
+    const fetchUserAndRole = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      const email = authData.user?.email || null;
+      setUserEmail(email);
+      if (email) {
+        // Récupérer le rôle de l'utilisateur connecté
+        const { data: users, error } = await supabase
+          .from('Utilisateur')
+          .select('role')
+          .eq('email', email)
+          .single();
+        if (users && users.role) {
+          setUserRole(users.role);
+          // Si admin, charger tous les utilisateurs
+          if (users.role === 1) {
+            const { data: allUsers } = await supabase
+              .from('Utilisateur')
+              .select('*');
+            setUtilisateurs(allUsers || []);
+          }
+        }
+      }
+      setLoading(false);
     };
-    getUser();
+    fetchUserAndRole();
   }, []);
 
   const handleLogout = async () => {
@@ -72,13 +106,39 @@ export default function HomePage() {
         </div>
       </header>
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100vw", minHeight: "100vh" }}>
-        <div className="modern-card" style={{ maxWidth: 480, width: "100%", margin: "0 auto", textAlign: "center", background: "rgba(30,30,30,0.92)", color: "#ededed", marginTop: 90 }}>
+        <div className="modern-card" style={{ maxWidth: userRole === 1 ? 900 : 480, width: "100%", margin: "0 auto", textAlign: "center", background: "rgba(30,30,30,0.92)", color: "#ededed", marginTop: 90 }}>
           <h1 style={{ fontSize: 32, marginBottom: 18, color: "#ededed", fontWeight: 700, letterSpacing: 0.5 }}>Bienvenue 👋</h1>
           <p style={{ color: "#b3b3b3", fontSize: 18, marginBottom: 32, lineHeight: 1.6 }}>
             Vous êtes connecté à l'application de gestion de rôles.<br />
             Gérez vos entretiens facilement et en toute sécurité.
           </p>
           <img src="/globe.svg" alt="Accueil" style={{ width: 110, marginBottom: 24, filter: "drop-shadow(0 2px 8px #0006)" }} />
+          {loading && <div style={{ color: '#4f8cff', marginTop: 24 }}>Chargement...</div>}
+          {userRole === 1 && !loading && (
+            <div style={{ marginTop: 40 }}>
+              <h2 style={{ color: '#38e8ff', marginBottom: 18, fontSize: 24 }}>Gestion des utilisateurs</h2>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(20,20,20,0.95)', borderRadius: 10, overflow: 'hidden', fontSize: 15 }}>
+                <thead>
+                  <tr style={{ background: '#232526', color: '#ededed' }}>
+                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Nom</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Prénom</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Email</th>
+                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Rôle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {utilisateurs.map(u => (
+                    <tr key={u.id} style={{ borderBottom: '1px solid #333' }}>
+                      <td style={{ padding: 8 }}>{u.nom}</td>
+                      <td style={{ padding: 8 }}>{u.prenom}</td>
+                      <td style={{ padding: 8 }}>{u.email}</td>
+                      <td style={{ padding: 8 }}>{u.role === 1 ? 'Administrateur' : 'Utilisateur'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
     </div>
