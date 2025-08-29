@@ -42,6 +42,10 @@ export default function HomePage() {
   const [userRole, setUserRole] = useState<number | null>(null);
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState<Partial<Utilisateur>>({});
+  const [addForm, setAddForm] = useState<Partial<Utilisateur>>({ nom: '', prenom: '', email: '', role: 2 });
+  const [crudLoading, setCrudLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserAndRole = async () => {
@@ -50,7 +54,7 @@ export default function HomePage() {
       setUserEmail(email);
       if (email) {
         // Récupérer le rôle de l'utilisateur connecté
-        const { data: users, error } = await supabase
+        const { data: users } = await supabase
           .from('Utilisateur')
           .select('role')
           .eq('email', email)
@@ -59,10 +63,7 @@ export default function HomePage() {
           setUserRole(users.role);
           // Si admin, charger tous les utilisateurs
           if (users.role === 1) {
-            const { data: allUsers } = await supabase
-              .from('Utilisateur')
-              .select('*');
-            setUtilisateurs(allUsers || []);
+            await fetchAllUsers();
           }
         }
       }
@@ -70,6 +71,60 @@ export default function HomePage() {
     };
     fetchUserAndRole();
   }, []);
+
+  const fetchAllUsers = async () => {
+    const { data: allUsers } = await supabase
+      .from('Utilisateur')
+      .select('*');
+    setUtilisateurs(allUsers || []);
+  };
+
+  const handleEdit = (u: Utilisateur) => {
+    setEditId(u.id);
+    setForm({ ...u });
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSave = async () => {
+    setCrudLoading(true);
+    await supabase.from('Utilisateur').update({
+      nom: form.nom,
+      prenom: form.prenom,
+      email: form.email,
+      role: Number(form.role)
+    }).eq('id', editId);
+    setEditId(null);
+    await fetchAllUsers();
+    setCrudLoading(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    setCrudLoading(true);
+    await supabase.from('Utilisateur').delete().eq('id', id);
+    await fetchAllUsers();
+    setCrudLoading(false);
+  };
+
+  const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setAddForm({ ...addForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCrudLoading(true);
+    await supabase.from('Utilisateur').insert({
+      nom: addForm.nom,
+      prenom: addForm.prenom,
+      email: addForm.email,
+      role: Number(addForm.role)
+    });
+    setAddForm({ nom: '', prenom: '', email: '', role: 2 });
+    await fetchAllUsers();
+    setCrudLoading(false);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -106,7 +161,7 @@ export default function HomePage() {
         </div>
       </header>
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100vw", minHeight: "100vh" }}>
-        <div className="modern-card" style={{ maxWidth: userRole === 1 ? 900 : 480, width: "100%", margin: "0 auto", textAlign: "center", background: "rgba(30,30,30,0.92)", color: "#ededed", marginTop: 90 }}>
+  <div className="modern-card" style={{ maxWidth: userRole === 1 ? 650 : 480, width: "100%", margin: "0 auto", textAlign: "center", background: "rgba(30,30,30,0.92)", color: "#ededed", marginTop: 90, padding: userRole === 1 ? '2rem 1.2rem' : undefined }}>
           <h1 style={{ fontSize: 32, marginBottom: 18, color: "#ededed", fontWeight: 700, letterSpacing: 0.5 }}>Bienvenue 👋</h1>
           <p style={{ color: "#b3b3b3", fontSize: 18, marginBottom: 32, lineHeight: 1.6 }}>
             Vous êtes connecté à l'application de gestion de rôles.<br />
@@ -115,28 +170,65 @@ export default function HomePage() {
           <img src="/globe.svg" alt="Accueil" style={{ width: 110, marginBottom: 24, filter: "drop-shadow(0 2px 8px #0006)" }} />
           {loading && <div style={{ color: '#4f8cff', marginTop: 24 }}>Chargement...</div>}
           {userRole === 1 && !loading && (
-            <div style={{ marginTop: 40 }}>
-              <h2 style={{ color: '#38e8ff', marginBottom: 18, fontSize: 24 }}>Gestion des utilisateurs</h2>
-              <table style={{ width: '100%', borderCollapse: 'collapse', background: 'rgba(20,20,20,0.95)', borderRadius: 10, overflow: 'hidden', fontSize: 15 }}>
-                <thead>
-                  <tr style={{ background: '#232526', color: '#ededed' }}>
-                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Nom</th>
-                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Prénom</th>
-                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Email</th>
-                    <th style={{ padding: 10, borderBottom: '1px solid #444' }}>Rôle</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {utilisateurs.map(u => (
-                    <tr key={u.id} style={{ borderBottom: '1px solid #333' }}>
-                      <td style={{ padding: 8 }}>{u.nom}</td>
-                      <td style={{ padding: 8 }}>{u.prenom}</td>
-                      <td style={{ padding: 8 }}>{u.email}</td>
-                      <td style={{ padding: 8 }}>{u.role === 1 ? 'Administrateur' : 'Utilisateur'}</td>
+            <div style={{ marginTop: 32 }}>
+              <h2 style={{ color: '#38e8ff', marginBottom: 12, fontSize: 20, fontWeight: 600, letterSpacing: 0.5 }}>Gestion des utilisateurs</h2>
+              <form onSubmit={handleAdd} style={{ display: 'flex', gap: 16, margin: '0 auto 24px auto', maxWidth: 650, background: 'rgba(36,36,36,0.7)', borderRadius: 10, padding: '18px 16px', alignItems: 'center', boxShadow: '0 2px 8px #0002', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <input name="nom" placeholder="Nom" value={addForm.nom} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 90, fontSize: 15, outline: 'none', marginBottom: 6 }} />
+                <input name="prenom" placeholder="Prénom" value={addForm.prenom} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 90, fontSize: 15, outline: 'none', marginBottom: 6 }} />
+                <input name="email" placeholder="Email" value={addForm.email} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 160, fontSize: 15, outline: 'none', marginBottom: 6 }} />
+                <select name="role" value={addForm.role} onChange={handleAddChange} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', fontSize: 15, outline: 'none', marginBottom: 6 }}>
+                  <option value={1}>Admin</option>
+                  <option value={2}>User</option>
+                </select>
+                <button type="submit" className="modern-btn" style={{ minWidth: 70, fontSize: 15, padding: '0.7rem 0', borderRadius: 20, background: 'linear-gradient(90deg,#38e8ff,#4f8cff)', marginBottom: 6 }} disabled={crudLoading}>+</button>
+              </form>
+              <div style={{ overflowX: 'auto', borderRadius: 12, boxShadow: '0 2px 8px #0002', background: 'rgba(36,36,36,0.7)', maxWidth: 700, margin: '0 auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 15, background: 'none' }}>
+                  <thead>
+                    <tr style={{ color: '#ededed', borderBottom: '1px solid #333', background: 'none' }}>
+                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Nom</th>
+                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Prénom</th>
+                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Email</th>
+                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Rôle</th>
+                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'center', fontSize: 15 }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {utilisateurs.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid #232526', background: editId === u.id ? '#232526' : 'none', transition: 'background 0.2s', height: 54 }}>
+                        {editId === u.id ? (
+                          <>
+                            <td style={{ padding: '10px 8px' }}><input name="nom" value={form.nom} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 70, fontSize: 15, outline: 'none' }} /></td>
+                            <td style={{ padding: '10px 8px' }}><input name="prenom" value={form.prenom} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 70, fontSize: 15, outline: 'none' }} /></td>
+                            <td style={{ padding: '10px 8px' }}><input name="email" value={form.email} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 120, fontSize: 15, outline: 'none' }} /></td>
+                            <td style={{ padding: '10px 8px' }}>
+                              <select name="role" value={form.role} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', fontSize: 15, outline: 'none' }}>
+                                <option value={1}>Admin</option>
+                                <option value={2}>User</option>
+                              </select>
+                            </td>
+                            <td style={{ padding: '10px 8px', display: 'flex', gap: 10, justifyContent: 'center' }}>
+                              <button onClick={handleEditSave} className="modern-btn" style={{ minWidth: 36, fontSize: 15, padding: '0.5rem 0', borderRadius: 20, background: 'linear-gradient(90deg,#38e8ff,#4f8cff)' }} disabled={crudLoading} title="Valider">✔️</button>
+                              <button onClick={() => setEditId(null)} className="modern-btn" style={{ minWidth: 36, background: '#444', color: '#fff', fontSize: 15, padding: '0.5rem 0', borderRadius: 20 }} disabled={crudLoading} title="Annuler">✖️</button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: '10px 8px' }}>{u.nom}</td>
+                            <td style={{ padding: '10px 8px' }}>{u.prenom}</td>
+                            <td style={{ padding: '10px 8px' }}>{u.email}</td>
+                            <td style={{ padding: '10px 8px' }}>{u.role === 1 ? 'Admin' : 'User'}</td>
+                            <td style={{ padding: '10px 8px', display: 'flex', gap: 10, justifyContent: 'center' }}>
+                              <button onClick={() => handleEdit(u)} className="modern-btn" style={{ minWidth: 36, fontSize: 15, borderRadius: 20, padding: '0.5rem 0', background: 'linear-gradient(90deg,#38e8ff,#4f8cff)' }} disabled={crudLoading} title="Éditer">✏️</button>
+                              <button onClick={() => handleDelete(u.id)} className="modern-btn" style={{ minWidth: 36, background: '#e74c3c', color: '#fff', fontSize: 15, borderRadius: 20, padding: '0.5rem 0' }} disabled={crudLoading} title="Supprimer">🗑️</button>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
