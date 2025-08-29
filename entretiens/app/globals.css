@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: linear-gradient(120deg, #232526 0%, #414345 100%);
+  color: var(--foreground);
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.centered-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 1.2s cubic-bezier(.39,.575,.565,1) both;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+  100% { opacity: 1; transform: none; }
+}
+
+.modern-card {
+  background: rgba(30, 30, 30, 0.92);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  padding: 2.5rem 2rem;
+  max-width: 400px;
+  width: 100%;
+  color: #ededed;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: fadeIn 1.2s cubic-bezier(.39,.575,.565,1) both;
+}
+
+.modern-card h1, .modern-card h2 {
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.01em;
+  font-size: 2rem;
+}
+
+.modern-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.modern-form input[type="email"],
+.modern-form input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #181818;
+  color: #ededed;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+  transition: border 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.modern-form input:focus {
+  border: 1.5px solid #4f8cff;
+  box-shadow: 0 0 0 2px #4f8cff33;
+}
+
+.modern-btn {
+  width: 100%;
+  padding: 0.8rem 0;
+  background: linear-gradient(90deg, #4f8cff 0%, #38e8ff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px 0 #4f8cff33;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+}
+.modern-btn:hover, .modern-btn:focus {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px 0 #4f8cff44;
+  background: linear-gradient(90deg, #38e8ff 0%, #4f8cff 100%);
+}
+
+.modern-link {
+  color: #4f8cff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.modern-link:hover {
+  color: #38e8ff;
+  text-decoration: underline;
+}
+
+.modern-card .modern-links {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
