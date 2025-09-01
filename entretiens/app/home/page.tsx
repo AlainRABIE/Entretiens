@@ -21,26 +21,26 @@ type Utilisateur = {
 
 const palettes = {
   light: {
-    primary: "#7c3aed", // violet
-    secondary: "#ede9fe",
-    accent: "#a78bfa",
+    primary: "#2563eb", // bleu sobre
+    secondary: "#fff", // cartes blanches
+    accent: "#2563eb", // bleu accent
     success: "#22c55e",
-    info: "#0ea5e9",
-    warning: "#facc15",
+    info: "#2563eb",
+    warning: "#fbbf24",
     danger: "#ef4444",
-    light: "#f8fafc",
-    dark: "#18181b",
-    gray100: "#f8fafc",
+    light: "#f5f6fa",
+    dark: "#23272b",
+    gray100: "#f5f6fa",
     gray200: "#e5e7eb",
     gray300: "#d1d5db",
     gray400: "#9ca3af",
     gray500: "#6b7280",
     gray600: "#4b5563",
-    gray700: "#334155",
-    gray800: "#1e293b",
-    gray900: "#18181b",
+    gray700: "#23272b",
+    gray800: "#18181b",
+    gray900: "#111",
     white: "#fff",
-    background: "#f8fafc"
+    background: "#f5f6fa"
   },
   dark: {
     primary: "#15171c", // header très foncé
