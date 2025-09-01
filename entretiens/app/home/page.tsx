@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "../../lib/supabaseClient";
+const ChartComponent = dynamic(() => import("./ChartComponent"), { ssr: false });
+const RolePieChart = dynamic(() => import("./RolePieChart"), { ssr: false });
+
+const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
 type Utilisateur = {
   id: number;
@@ -10,120 +15,208 @@ type Utilisateur = {
   role: number;
   auth_id: string;
   email: string;
+  domaines?: string[];
+  actif?: boolean;
 };
 
-function Menubar({ email, onLogout }: { email: string; onLogout: () => void }) {
-  return (
-    <nav style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      background: "rgba(30,30,30,0.92)",
-      color: "#ededed",
-      padding: "1.2rem 2.2rem",
-      borderRadius: 18,
-      marginBottom: 40,
-      boxShadow: "0 8px 32px 0 rgba(31,38,135,0.18)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      fontFamily: "Inter, Arial, Helvetica, sans-serif"
-    }}>
-      <div style={{ fontWeight: 700, fontSize: 24, letterSpacing: 1, color: "#fff" }}>Entretiens</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-        <span style={{ background: "#232526", padding: "7px 18px", borderRadius: 10, fontSize: 16, color: "#ededed", border: "1px solid #333" }}>{email}</span>
-        <button onClick={onLogout} style={{ background: "linear-gradient(90deg,#e74c3c,#c0392b)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 22px", fontWeight: 600, cursor: "pointer", fontSize: 15, boxShadow: "0 2px 8px rgba(231,76,60,0.12)" }}>Déconnexion</button>
-      </div>
-    </nav>
-  );
-}
+const palettes = {
+  light: {
+    primary: "#7c3aed", // violet
+    secondary: "#ede9fe",
+    accent: "#a78bfa",
+    success: "#22c55e",
+    info: "#0ea5e9",
+    warning: "#facc15",
+    danger: "#ef4444",
+    light: "#f8fafc",
+    dark: "#18181b",
+    gray100: "#f8fafc",
+    gray200: "#e5e7eb",
+    gray300: "#d1d5db",
+    gray400: "#9ca3af",
+    gray500: "#6b7280",
+    gray600: "#4b5563",
+    gray700: "#334155",
+    gray800: "#1e293b",
+    gray900: "#18181b",
+    white: "#fff",
+    background: "#f8fafc"
+  },
+  dark: {
+    primary: "#15171c", // header très foncé
+    secondary: "#23272b", // sidebar/cartes gris foncé
+    background: "#181c23", // fond principal anthracite
+    accent: "#10b981",
+    success: "#22d3ee",
+    info: "#818cf8",
+    warning: "#facc15",
+    danger: "#ef4444",
+    light: "#23272b",
+    dark: "#f8fafc",
+    gray100: "#181c23",
+    gray200: "#23272b",
+    gray300: "#23272b",
+    gray400: "#374151",
+    gray500: "#6b7280",
+    gray600: "#a1a1aa",
+    gray700: "#d1d5db",
+    gray800: "#e5e7eb",
+    gray900: "#fff",
+    white: "#f3f4f6"
+  }
+};
 
+const roles = [
+  { value: 1, label: "Admin", color: palettes.light.primary },
+  { value: 2, label: "User", color: palettes.light.success },
+];
+
+const sousDomaines = ["admin.monsite.com", "client.monsite.com"];
+
+const Badge = ({ color, children, palette }: { color: string; children: any; palette: any }) => (
+  <span style={{ background: color, color: palette.white, borderRadius: 8, padding: "2px 10px", fontSize: 13, fontWeight: 700, marginRight: 6 }}>{children}</span>
+);
+
+const sidebarLinks = [
+  { label: "Utilisateurs", icon: "👤" },
+  { label: "Sous-domaines", icon: "🌐" },
+  { label: "Journal", icon: "📝" },
+];
+
+const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: boolean; palette: any }) => (
+  <aside
+    style={{
+      width: open ? 220 : 0,
+      background: palette.secondary,
+      color: palette.white,
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      boxShadow: open ? "2px 0 16px #0002" : undefined,
+      transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
+      overflow: "hidden",
+      position: "fixed",
+      top: 64, // commence sous le header
+      left: 0,
+      zIndex: 100,
+      borderTopRightRadius: 18,
+      borderBottomRightRadius: 18,
+    }}
+  >
+  <div style={{ height: 32 }} />
+    <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
+      {sidebarLinks.map(link => (
+        <a
+          key={link.label}
+          href="#"
+          style={{
+            color: palette.white,
+            fontWeight: 600,
+            textDecoration: "none",
+            borderRadius: 10,
+            padding: "10px 16px",
+            margin: "2px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            fontSize: 15,
+            transition: "background 0.18s",
+          }}
+          onMouseOver={e => (e.currentTarget.style.background = palette.gray400)}
+          onMouseOut={e => (e.currentTarget.style.background = "")}
+        >
+          <span style={{ fontSize: 18 }}>{link.icon}</span>
+          {link.label}
+        </a>
+      ))}
+    </nav>
+    <div style={{ flex: 0, height: 24 }} />
+  </aside>
+);
 
 export default function HomePage() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<number | null>(null);
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
+  const [connexionsParMois, setConnexionsParMois] = useState<{ date: string; connexions: number; creations: number }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editUser, setEditUser] = useState<Utilisateur | null>(null);
+  const [filterRole, setFilterRole] = useState<number | null>(null);
+  const [filterDomaine, setFilterDomaine] = useState<string | null>(null);
+  const [activityLog, setActivityLog] = useState<string[]>([]);
+  const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<Partial<Utilisateur>>({});
-  const [addForm, setAddForm] = useState<Partial<Utilisateur>>({ nom: '', prenom: '', email: '', role: 2 });
-  const [crudLoading, setCrudLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [theme, setTheme] = useState<'light' | 'dark'>("light");
+  const palette = palettes[theme];
 
   useEffect(() => {
-    const fetchUserAndRole = async () => {
-      const { data: authData } = await supabase.auth.getUser();
-      const email = authData.user?.email || null;
-      setUserEmail(email);
-      if (email) {
-        // Récupérer le rôle de l'utilisateur connecté
-        const { data: users } = await supabase
-          .from('Utilisateur')
-          .select('role')
-          .eq('email', email)
-          .single();
-        if (users && users.role) {
-          setUserRole(users.role);
-          // Si admin, charger tous les utilisateurs
-          if (users.role === 1) {
-            await fetchAllUsers();
-          }
-        }
-      }
-      setLoading(false);
-    };
-    fetchUserAndRole();
+    fetchAllUsers();
+    fetchUserEmail();
+    fetchConnexionsParMois();
   }, []);
 
+  // Récupère le nombre de connexions par mois depuis la table Connexion
+  const fetchConnexionsParMois = async () => {
+    // On suppose que la table Connexion existe avec created_at
+    const { data, error } = await supabase
+      .from("Connexion")
+      .select("created_at")
+      .gte("created_at", `${new Date().getFullYear()}-01-01`)
+      .lte("created_at", `${new Date().getFullYear()}-12-31`);
+    if (error) return;
+    // Compte les connexions par mois
+    const counts = Array(12).fill(0);
+    (data || []).forEach((row: { created_at: string }) => {
+      const d = new Date(row.created_at);
+      counts[d.getMonth()]++;
+    });
+    // Compte les créations de comptes par mois (depuis Utilisateur)
+    const creations = Array(12).fill(0);
+    utilisateurs.forEach(u => {
+      const d = new Date(u.created_at);
+      if (d.getFullYear() === new Date().getFullYear()) creations[d.getMonth()]++;
+    });
+    setConnexionsParMois(
+      MONTHS.map((m, i) => ({ date: m, connexions: counts[i], creations: creations[i] }))
+    );
+  };
+
   const fetchAllUsers = async () => {
-    const { data: allUsers } = await supabase
-      .from('Utilisateur')
-      .select('*');
-    setUtilisateurs(allUsers || []);
+    setLoading(true);
+    const { data } = await supabase.from("Utilisateur").select("*");
+    setUtilisateurs(data || []);
+    setLoading(false);
   };
 
-  const handleEdit = (u: Utilisateur) => {
-    setEditId(u.id);
-    setForm({ ...u });
+  const fetchUserEmail = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUserEmail(data?.user?.email || "");
   };
 
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleEdit = (user: Utilisateur) => {
+    setEditUser(user);
+    setForm(user);
+    setShowModal(true);
   };
 
-  const handleEditSave = async () => {
-    setCrudLoading(true);
-    await supabase.from('Utilisateur').update({
-      nom: form.nom,
-      prenom: form.prenom,
-      email: form.email,
-      role: Number(form.role)
-    }).eq('id', editId);
-    setEditId(null);
-    await fetchAllUsers();
-    setCrudLoading(false);
+  const handleSave = async () => {
+    await supabase.from("Utilisateur").update(form).eq("id", editUser?.id);
+    setActivityLog(log => [
+      `Droits modifiés pour ${form.nom} ${form.prenom} (${form.email})`,
+      ...log.slice(0, 19)
+    ]);
+    setShowModal(false);
+    setEditUser(null);
+    fetchAllUsers();
   };
 
   const handleDelete = async (id: number) => {
-    setCrudLoading(true);
-    await supabase.from('Utilisateur').delete().eq('id', id);
-    await fetchAllUsers();
-    setCrudLoading(false);
-  };
-
-  const handleAddChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setAddForm({ ...addForm, [e.target.name]: e.target.value });
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCrudLoading(true);
-    await supabase.from('Utilisateur').insert({
-      nom: addForm.nom,
-      prenom: addForm.prenom,
-      email: addForm.email,
-      role: Number(addForm.role)
-    });
-    setAddForm({ nom: '', prenom: '', email: '', role: 2 });
-    await fetchAllUsers();
-    setCrudLoading(false);
+    await supabase.from("Utilisateur").delete().eq("id", id);
+    setActivityLog(log => [
+      `Utilisateur supprimé (id: ${id})`,
+      ...log.slice(0, 19)
+    ]);
+    fetchAllUsers();
   };
 
   const handleLogout = async () => {
@@ -131,106 +224,234 @@ export default function HomePage() {
     window.location.href = "/login";
   };
 
+  const filteredUsers = utilisateurs.filter(u =>
+    (filterRole ? u.role === filterRole : true) &&
+    (filterDomaine ? (u.domaines || []).includes(filterDomaine) : true)
+  );
+
   return (
-    <div style={{ minHeight: "100vh", width: "100vw", background: "none", display: "flex", flexDirection: "column" }}>
+  <div style={{ minHeight: "100vh", background: palette.background || palette.gray100, paddingTop: 64 }}>
+      {/* Header */}
       <header style={{
-        width: "100%",
+        height: 64,
+        background: palette.secondary,
+        color: palette.white,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "0 2.5vw",
-        height: 70,
-        background: "rgba(30,30,30,0.92)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        fontFamily: "Inter, Arial, Helvetica, sans-serif",
-        boxShadow: "0 2px 16px rgba(31,38,135,0.08)",
+        padding: "0 32px 0 16px",
         position: "fixed",
         top: 0,
         left: 0,
-        zIndex: 10
+        right: 0,
+        zIndex: 200,
+        boxShadow: "0 2px 8px #0001"
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <img src="/window.svg" alt="Logo" style={{ width: 32, height: 32, filter: "drop-shadow(0 2px 8px #0006)" }} />
-          <span style={{ color: "#ededed", fontWeight: 700, fontSize: 18, letterSpacing: 0.5 }}>Alain RABIE</span>
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            style={{
+              background: "none",
+              border: "none",
+              color: palette.white,
+              fontSize: 28,
+              cursor: "pointer",
+              marginRight: 8,
+              display: "flex",
+              alignItems: "center"
+            }}
+            aria-label="Ouvrir/fermer le menu"
+          >
+            <span style={{ fontSize: 28, lineHeight: 1 }}>&#9776;</span>
+          </button>
+          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>Portail Admin</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {userEmail && (
-            <span style={{ background: "#232526", padding: "6px 16px", borderRadius: 8, fontSize: 15, color: "#ededed", border: "1px solid #333" }}>{userEmail}</span>
-          )}
-          <button onClick={handleLogout} style={{ background: "linear-gradient(90deg,#e74c3c,#c0392b)", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 600, cursor: "pointer", fontSize: 15, boxShadow: "0 2px 8px rgba(231,76,60,0.12)" }}>Déconnexion</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          {/* Switch mode clair/sombre */}
+          <button
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            style={{
+              background: palette.secondary,
+              color: palette.primary,
+              border: "none",
+              borderRadius: 8,
+              padding: "6px 16px",
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: "pointer",
+              marginRight: 8
+            }}
+            aria-label="Changer le mode clair/sombre"
+          >
+            {theme === "light" ? "🌞" : "🌙"}
+          </button>
+          <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px" }}>{userEmail}</span>
+          <button
+            onClick={handleLogout}
+            style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+          >Déconnexion</button>
         </div>
       </header>
-      <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100vw", minHeight: "100vh" }}>
-  <div className="modern-card" style={{ maxWidth: userRole === 1 ? 650 : 480, width: "100%", margin: "0 auto", textAlign: "center", background: "rgba(30,30,30,0.92)", color: "#ededed", marginTop: 90, padding: userRole === 1 ? '2rem 1.2rem' : undefined }}>
-          <h1 style={{ fontSize: 32, marginBottom: 18, color: "#ededed", fontWeight: 700, letterSpacing: 0.5 }}>Bienvenue 👋</h1>
-          <p style={{ color: "#b3b3b3", fontSize: 18, marginBottom: 32, lineHeight: 1.6 }}>
-            Vous êtes connecté à l'application de gestion de rôles.<br />
-            Gérez vos entretiens facilement et en toute sécurité.
-          </p>
-          <img src="/globe.svg" alt="Accueil" style={{ width: 110, marginBottom: 24, filter: "drop-shadow(0 2px 8px #0006)" }} />
-          {loading && <div style={{ color: '#4f8cff', marginTop: 24 }}>Chargement...</div>}
-          {userRole === 1 && !loading && (
-            <div style={{ marginTop: 32 }}>
-              <h2 style={{ color: '#38e8ff', marginBottom: 12, fontSize: 20, fontWeight: 600, letterSpacing: 0.5 }}>Gestion des utilisateurs</h2>
-              <form onSubmit={handleAdd} style={{ display: 'flex', gap: 16, margin: '0 auto 24px auto', maxWidth: 650, background: 'rgba(36,36,36,0.7)', borderRadius: 10, padding: '18px 16px', alignItems: 'center', boxShadow: '0 2px 8px #0002', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <input name="nom" placeholder="Nom" value={addForm.nom} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 90, fontSize: 15, outline: 'none', marginBottom: 6 }} />
-                <input name="prenom" placeholder="Prénom" value={addForm.prenom} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 90, fontSize: 15, outline: 'none', marginBottom: 6 }} />
-                <input name="email" placeholder="Email" value={addForm.email} onChange={handleAddChange} required style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', minWidth: 160, fontSize: 15, outline: 'none', marginBottom: 6 }} />
-                <select name="role" value={addForm.role} onChange={handleAddChange} style={{ padding: '10px 12px', borderRadius: 8, border: 'none', background: '#232526', color: '#ededed', fontSize: 15, outline: 'none', marginBottom: 6 }}>
-                  <option value={1}>Admin</option>
-                  <option value={2}>User</option>
+      {/* Sidebar */}
+  <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} />
+      {/* Main content */}
+      <main
+        style={{
+          flex: 1,
+          padding: 32,
+          maxWidth: 1400,
+          margin: "0 auto",
+          width: "100%",
+          marginLeft: sidebarOpen ? 220 : 0,
+          marginTop: 80,
+          transition: "margin-left 0.3s cubic-bezier(.4,2,.6,1)",
+          background: palette.gray100,
+          color: palette.dark
+        }}
+      >
+        <h1 style={{ fontWeight: 900, fontSize: 32, color: palette.primary, marginBottom: 24 }}>Gestion des utilisateurs</h1>
+        {/* Nouveau Dashboard moderne */}
+        <div style={{
+          display: "flex",
+          gap: 32,
+          marginBottom: 32,
+          flexWrap: "wrap",
+          alignItems: "stretch",
+          justifyContent: "space-between"
+        }}>
+          {/* Grand graphique connexions/inscriptions */}
+          <div style={{ flex: 3, minWidth: 540, maxWidth: 1000 }}>
+            <ChartComponent
+              data={connexionsParMois}
+              label="Connexions & Inscriptions"
+            />
+          </div>
+          {/* Camembert répartition rôles */}
+          <div style={{ flex: 1, minWidth: 260, maxWidth: 340, display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{
+              background: palette.secondary,
+              borderRadius: 18,
+              boxShadow: `0 2px 12px ${palette.gray200}`,
+              padding: 28,
+              marginBottom: 28,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center"
+            }}>
+              <RolePieChart
+                adminCount={utilisateurs.filter(u => u.role === 1).length}
+                userCount={utilisateurs.filter(u => u.role === 2).length}
+                theme={theme}
+              />
+            </div>
+            <div style={{
+              background: palette.white,
+              borderRadius: 18,
+              boxShadow: `0 2px 12px ${palette.gray200}`,
+              padding: 28,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginBottom: 0
+            }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: palette.primary, textTransform: "uppercase", marginBottom: 8, letterSpacing: 1 }}>Total utilisateurs</div>
+              <div style={{ fontSize: 32, fontWeight: 900, color: palette.gray700 }}>{utilisateurs.length}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtres */}
+        <div style={{ display: "flex", gap: 16, marginBottom: 18, alignItems: "center" }}>
+          <select value={filterRole ?? ''} onChange={e => setFilterRole(e.target.value ? Number(e.target.value) : null)} style={{ padding: 8, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }}>
+            <option value="">Tous les rôles</option>
+            {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+          <select value={filterDomaine ?? ''} onChange={e => setFilterDomaine(e.target.value || null)} style={{ padding: 8, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }}>
+            <option value="">Tous les sous-domaines</option>
+            {sousDomaines.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        {/* Table utilisateurs */}
+        <div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 0, overflow: "hidden", marginBottom: 24 }}>
+          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 16, color: palette.white }}>
+            <thead style={{ background: palette.secondary }}>
+              <tr>
+                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Nom</th>
+                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Prénom</th>
+                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Email</th>
+                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Rôle</th>
+                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Sous-domaines</th>
+                <th style={{ padding: 16, textAlign: "center", color: palette.white, fontWeight: 800, fontSize: 15 }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u: Utilisateur, idx) => (
+                <tr key={u.id} style={{ background: idx % 2 === 0 ? palette.secondary : palette.gray300, borderRadius: 12 }}>
+                  <td style={{ padding: 14, color: palette.white }}>{u.nom}</td>
+                  <td style={{ padding: 14, color: palette.white }}>{u.prenom}</td>
+                  <td style={{ padding: 14, color: palette.white }}>{u.email}</td>
+                  <td style={{ padding: 14 }}>
+                    <Badge color={roles.find(r => r.value === u.role)?.color || palette.gray500} palette={palette}>
+                      {roles.find(r => r.value === u.role)?.label || "?"}
+                    </Badge>
+                  </td>
+                  <td style={{ padding: 14 }}>
+                    {(u.domaines || []).map(d => <Badge key={d} color={palette.info} palette={palette}>{d}</Badge>)}
+                  </td>
+                  <td style={{ padding: 14, textAlign: "center" }}>
+                    <button onClick={() => handleEdit(u)} style={{ background: palette.info, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, marginRight: 8, cursor: "pointer" }}>Éditer</button>
+                    <button onClick={() => handleDelete(u.id)} style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}>Supprimer</button>
+                  </td>
+                </tr>
+              ))}
+              {filteredUsers.length === 0 && (
+                <tr><td colSpan={6} style={{ color: palette.gray400, fontStyle: "italic", padding: 22, textAlign: "center", background: palette.secondary }}>Aucun utilisateur</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modale édition utilisateur */}
+        {showModal && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "#0007", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: palette.white, borderRadius: 16, padding: 32, minWidth: 340, boxShadow: "0 8px 32px #0002", position: "relative" }}>
+              <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 18, color: palette.primary }}>Éditer les droits</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <input value={form.nom || ''} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))} placeholder="Nom" style={{ padding: 10, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }} />
+                <input value={form.prenom || ''} onChange={e => setForm(f => ({ ...f, prenom: e.target.value }))} placeholder="Prénom" style={{ padding: 10, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }} />
+                <input value={form.email || ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" style={{ padding: 10, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }} />
+                <select value={form.role || 2} onChange={e => setForm(f => ({ ...f, role: Number(e.target.value) }))} style={{ padding: 10, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }}>
+                  {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
-                <button type="submit" className="modern-btn" style={{ minWidth: 70, fontSize: 15, padding: '0.7rem 0', borderRadius: 20, background: 'linear-gradient(90deg,#38e8ff,#4f8cff)', marginBottom: 6 }} disabled={crudLoading}>+</button>
-              </form>
-              <div style={{ overflowX: 'auto', borderRadius: 12, boxShadow: '0 2px 8px #0002', background: 'rgba(36,36,36,0.7)', maxWidth: 700, margin: '0 auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, fontSize: 15, background: 'none' }}>
-                  <thead>
-                    <tr style={{ color: '#ededed', borderBottom: '1px solid #333', background: 'none' }}>
-                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Nom</th>
-                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Prénom</th>
-                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Email</th>
-                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'left', fontSize: 15 }}>Rôle</th>
-                      <th style={{ padding: '14px 8px', fontWeight: 600, textAlign: 'center', fontSize: 15 }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {utilisateurs.map(u => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid #232526', background: editId === u.id ? '#232526' : 'none', transition: 'background 0.2s', height: 54 }}>
-                        {editId === u.id ? (
-                          <>
-                            <td style={{ padding: '10px 8px' }}><input name="nom" value={form.nom} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 70, fontSize: 15, outline: 'none' }} /></td>
-                            <td style={{ padding: '10px 8px' }}><input name="prenom" value={form.prenom} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 70, fontSize: 15, outline: 'none' }} /></td>
-                            <td style={{ padding: '10px 8px' }}><input name="email" value={form.email} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', minWidth: 120, fontSize: 15, outline: 'none' }} /></td>
-                            <td style={{ padding: '10px 8px' }}>
-                              <select name="role" value={form.role} onChange={handleEditChange} style={{ padding: '8px 10px', borderRadius: 7, border: 'none', background: '#232526', color: '#ededed', fontSize: 15, outline: 'none' }}>
-                                <option value={1}>Admin</option>
-                                <option value={2}>User</option>
-                              </select>
-                            </td>
-                            <td style={{ padding: '10px 8px', display: 'flex', gap: 10, justifyContent: 'center' }}>
-                              <button onClick={handleEditSave} className="modern-btn" style={{ minWidth: 36, fontSize: 15, padding: '0.5rem 0', borderRadius: 20, background: 'linear-gradient(90deg,#38e8ff,#4f8cff)' }} disabled={crudLoading} title="Valider">✔️</button>
-                              <button onClick={() => setEditId(null)} className="modern-btn" style={{ minWidth: 36, background: '#444', color: '#fff', fontSize: 15, padding: '0.5rem 0', borderRadius: 20 }} disabled={crudLoading} title="Annuler">✖️</button>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td style={{ padding: '10px 8px' }}>{u.nom}</td>
-                            <td style={{ padding: '10px 8px' }}>{u.prenom}</td>
-                            <td style={{ padding: '10px 8px' }}>{u.email}</td>
-                            <td style={{ padding: '10px 8px' }}>{u.role === 1 ? 'Admin' : 'User'}</td>
-                            <td style={{ padding: '10px 8px', display: 'flex', gap: 10, justifyContent: 'center' }}>
-                              <button onClick={() => handleEdit(u)} className="modern-btn" style={{ minWidth: 36, fontSize: 15, borderRadius: 20, padding: '0.5rem 0', background: 'linear-gradient(90deg,#38e8ff,#4f8cff)' }} disabled={crudLoading} title="Éditer">✏️</button>
-                              <button onClick={() => handleDelete(u.id)} className="modern-btn" style={{ minWidth: 36, background: '#e74c3c', color: '#fff', fontSize: 15, borderRadius: 20, padding: '0.5rem 0' }} disabled={crudLoading} title="Supprimer">🗑️</button>
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Sous-domaines autorisés :</div>
+                  {sousDomaines.map(d => (
+                    <label key={d} style={{ display: "block", marginBottom: 4 }}>
+                      <input type="checkbox" checked={(form.domaines || []).includes(d)} onChange={e => setForm(f => ({ ...f, domaines: e.target.checked ? [...(f.domaines || []), d] : (f.domaines || []).filter(x => x !== d) }))} /> {d}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
+                <button onClick={() => setShowModal(false)} style={{ background: palette.gray300, color: palette.gray700, border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>Annuler</button>
+                <button onClick={handleSave} style={{ background: palette.primary, color: palette.white, border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>Enregistrer</button>
               </div>
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Journal d’activité */}
+        <div style={{ marginTop: 48 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 20, color: palette.primary, marginBottom: 12 }}>Journal d’activité</h2>
+          <div style={{ background: palette.white, borderRadius: 12, boxShadow: palette.gray200, padding: 18, minHeight: 60 }}>
+            {activityLog.length === 0 && <div style={{ color: palette.gray400 }}>Aucune activité récente</div>}
+            {activityLog.map((log, i) => (
+              <div key={i} style={{ color: palette.gray700, fontSize: 15, marginBottom: 4 }}>{log}</div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
