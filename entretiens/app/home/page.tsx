@@ -83,6 +83,7 @@ const sidebarLinks = [
   { label: "Journal", icon: "📝" },
 ];
 
+
 const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: boolean; palette: any }) => (
   <aside
     style={{
@@ -103,7 +104,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
       borderBottomRightRadius: 18,
     }}
   >
-  <div style={{ height: 32 }} />
+    <div style={{ height: 32 }} />
     <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
       {sidebarLinks.map(link => (
         <a
@@ -264,7 +265,7 @@ export default function HomePage() {
           >
             <span style={{ fontSize: 28, lineHeight: 1 }}>&#9776;</span>
           </button>
-          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>Portail Admin</span>
+          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>Dashboard Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           {/* Switch mode clair/sombre */}
@@ -303,13 +304,12 @@ export default function HomePage() {
           margin: "0 auto",
           width: "100%",
           marginLeft: sidebarOpen ? 220 : 0,
-          marginTop: 80,
+            marginTop: 8,
           transition: "margin-left 0.3s cubic-bezier(.4,2,.6,1)",
           background: palette.gray100,
           color: palette.dark
         }}
       >
-        <h1 style={{ fontWeight: 900, fontSize: 32, color: palette.primary, marginBottom: 24 }}>Gestion des utilisateurs</h1>
         {/* Nouveau Dashboard moderne */}
         <div style={{
           display: "flex",
@@ -327,17 +327,20 @@ export default function HomePage() {
             />
           </div>
           {/* Camembert répartition rôles */}
-          <div style={{ flex: 1, minWidth: 260, maxWidth: 340, display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ flex: 1, minWidth: 260, maxWidth: 340, display: "flex", flexDirection: "column", alignItems: "stretch", alignSelf: "stretch", height: "100%" }}>
             <div style={{
               background: palette.secondary,
               borderRadius: 18,
               boxShadow: `0 2px 12px ${palette.gray200}`,
-              padding: 28,
+              padding: 0,
               marginBottom: 28,
               width: "100%",
+              height: "100%",
               display: "flex",
               flexDirection: "column",
-              alignItems: "center"
+              alignItems: "center",
+              justifyContent: "center",
+              flex: 1
             }}>
               <RolePieChart
                 adminCount={utilisateurs.filter(u => u.role === 1).length}
@@ -345,20 +348,7 @@ export default function HomePage() {
                 theme={theme}
               />
             </div>
-            <div style={{
-              background: palette.white,
-              borderRadius: 18,
-              boxShadow: `0 2px 12px ${palette.gray200}`,
-              padding: 28,
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginBottom: 0
-            }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: palette.primary, textTransform: "uppercase", marginBottom: 8, letterSpacing: 1 }}>Total utilisateurs</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: palette.gray700 }}>{utilisateurs.length}</div>
-            </div>
+            {/* Carte 'Total utilisateurs' supprimée car le nombre est déjà affiché au centre du camembert */}
           </div>
         </div>
 
@@ -442,17 +432,6 @@ export default function HomePage() {
             </div>
           </div>
         )}
-
-        {/* Journal d’activité */}
-        <div style={{ marginTop: 48 }}>
-          <h2 style={{ fontWeight: 800, fontSize: 20, color: palette.primary, marginBottom: 12 }}>Journal d’activité</h2>
-          <div style={{ background: palette.white, borderRadius: 12, boxShadow: palette.gray200, padding: 18, minHeight: 60 }}>
-            {activityLog.length === 0 && <div style={{ color: palette.gray400 }}>Aucune activité récente</div>}
-            {activityLog.map((log, i) => (
-              <div key={i} style={{ color: palette.gray700, fontSize: 15, marginBottom: 4 }}>{log}</div>
-            ))}
-          </div>
-        </div>
       </main>
     </div>
   );
