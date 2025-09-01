@@ -21,48 +21,48 @@ type Utilisateur = {
 
 const palettes = {
   light: {
-    primary: "#2563eb", // bleu sobre
-    secondary: "#fff", // cartes blanches
-    accent: "#2563eb", // bleu accent
-    success: "#22c55e",
-    info: "#2563eb",
-    warning: "#fbbf24",
-    danger: "#ef4444",
-    light: "#f5f6fa",
-    dark: "#23272b",
-    gray100: "#f5f6fa",
-    gray200: "#e5e7eb",
-    gray300: "#d1d5db",
-    gray400: "#9ca3af",
-    gray500: "#6b7280",
-    gray600: "#4b5563",
-    gray700: "#23272b",
-    gray800: "#18181b",
-    gray900: "#111",
+    primary: "#7367f0", // bleu/violet Vuexy
+    secondary: "#f5f6fa", // sidebar gris très clair
+    accent: "#e3e6fc", // bleu clair pour hover/active
+    success: "#28c76f", // vert doux
+    info: "#00cfe8",
+    warning: "#ff9f43",
+    danger: "#ea5455",
+    light: "#f8f8f8",
+    dark: "#4b4b5a", // texte principal
+    gray100: "#fff",
+    gray200: "#f5f6fa",
+    gray300: "#eaeaea", // bordures
+    gray400: "#b9b9c3",
+    gray500: "#7367f0",
+    gray600: "#82868b",
+    gray700: "#6e6b7b",
+    gray800: "#4b4b5a",
+    gray900: "#222f3e",
     white: "#fff",
-    background: "#f5f6fa"
+    background: "#fff"
   },
   dark: {
     primary: "#15171c", // header très foncé
     secondary: "#23272b", // sidebar/cartes gris foncé
     background: "#181c23", // fond principal anthracite
-    accent: "#10b981",
+    accent: "#8ab4f8", // bleu accent doux
     success: "#22d3ee",
     info: "#818cf8",
     warning: "#facc15",
     danger: "#ef4444",
     light: "#23272b",
-    dark: "#f8fafc",
-    gray100: "#181c23",
-    gray200: "#23272b",
-    gray300: "#23272b",
-    gray400: "#374151",
+    dark: "#ededed", // texte principal très clair
+    gray100: "#23272b",
+    gray200: "#2d3137",
+    gray300: "#35363c",
+    gray400: "#4b4b5a",
     gray500: "#6b7280",
     gray600: "#a1a1aa",
-    gray700: "#d1d5db",
-    gray800: "#e5e7eb",
-    gray900: "#fff",
-    white: "#f3f4f6"
+    gray700: "#bfc7d5",
+    gray800: "#e0e6f0",
+    gray900: "#f8fafc",
+    white: "#181c23"
   }
 };
 
@@ -89,7 +89,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
     style={{
       width: open ? 220 : 0,
       background: palette.secondary,
-      color: palette.white,
+      color: palette.dark,
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
@@ -111,7 +111,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
           key={link.label}
           href="#"
           style={{
-            color: palette.white,
+            color: palette.dark,
             fontWeight: 600,
             textDecoration: "none",
             borderRadius: 10,
@@ -123,7 +123,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
             fontSize: 15,
             transition: "background 0.18s",
           }}
-          onMouseOver={e => (e.currentTarget.style.background = palette.gray400)}
+          onMouseOver={e => (e.currentTarget.style.background = palette.accent)}
           onMouseOut={e => (e.currentTarget.style.background = "")}
         >
           <span style={{ fontSize: 18 }}>{link.icon}</span>

@@ -15,7 +15,7 @@ import { useRef, useEffect } from "react";
 export default function RolePieChart({ adminCount, userCount, theme = "light" }: { adminCount: number; userCount: number; theme?: 'light' | 'dark' }) {
     const palette = theme === "dark"
         ? { admin: "#10b981", user: "#818cf8", bg: "#23272b", text: "#f3f4f6" }
-        : { admin: "#7c3aed", user: "#22c55e", bg: "#ede9fe", text: "#18181b" };
+        : { admin: "#7c3aed", user: "#22c55e", bg: "#fff", text: "#23272b" };
     const total = adminCount + userCount;
     const chartRef = useRef<any>(null);
     // Affiche le nombre au centre du camembert
