@@ -78,65 +78,74 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
 );
 
 
-const sidebarLinks = [
+const adminSidebarLinks = [
   { label: "Home", icon: "🏠", href: "/home" },
   { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
   { label: "Sous-domaines", icon: "🌐", href: "#" },
   { label: "Journal", icon: "📝", href: "#" },
 ];
 
+const userSidebarLinks = [
+  { label: "Accueil", icon: "🏠", href: "/home" },
+  { label: "Mon Profil", icon: "👤", href: "/profile" },
+  { label: "Mes Domaines", icon: "🌐", href: "#" },
+];
 
 
-const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: boolean; palette: any }) => (
-  <aside
-    style={{
-      width: open ? 220 : 0,
-      background: palette.secondary,
-      color: palette.dark,
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      boxShadow: open ? "2px 0 16px #0002" : undefined,
-      transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
-      overflow: "hidden",
-      position: "fixed",
-      top: 64,
-      left: 0,
-      zIndex: 100,
-      borderTopRightRadius: 18,
-      borderBottomRightRadius: 18,
-    }}
-  >
-    <div style={{ height: 32 }} />
-    <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
-      {sidebarLinks.map(link => (
-        <a
-          key={link.label}
-          href={link.href}
-          style={{
-            color: palette.dark,
-            fontWeight: 600,
-            textDecoration: "none",
-            borderRadius: 10,
-            padding: "10px 16px",
-            margin: "2px 0",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontSize: 15,
-            transition: "background 0.18s",
-          }}
-          onMouseOver={e => (e.currentTarget.style.background = palette.accent)}
-          onMouseOut={e => (e.currentTarget.style.background = "")}
-        >
-          <span style={{ fontSize: 18 }}>{link.icon}</span>
-          {link.label}
-        </a>
-      ))}
-    </nav>
-    <div style={{ flex: 0, height: 24 }} />
-  </aside>
-);
+
+const Sidebar = ({ onLogout, open, palette, role }: { onLogout: () => void; open: boolean; palette: any; role: number }) => {
+  const links = role === 2 ? userSidebarLinks : adminSidebarLinks;
+  return (
+    <aside
+      style={{
+        width: open ? 220 : 0,
+        background: palette.secondary,
+        color: palette.dark,
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: open ? "2px 0 16px #0002" : undefined,
+        transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
+        overflow: "hidden",
+        position: "fixed",
+        top: 64,
+        left: 0,
+        zIndex: 100,
+        borderTopRightRadius: 18,
+        borderBottomRightRadius: 18,
+      }}
+    >
+      <div style={{ height: 32 }} />
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
+        {links.map(link => (
+          <a
+            key={link.label}
+            href={link.href}
+            style={{
+              color: palette.dark,
+              fontWeight: 600,
+              textDecoration: "none",
+              borderRadius: 10,
+              padding: "10px 16px",
+              margin: "2px 0",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 15,
+              transition: "background 0.18s",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = palette.accent)}
+            onMouseOut={e => (e.currentTarget.style.background = "")}
+          >
+            <span style={{ fontSize: 18 }}>{link.icon}</span>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+      <div style={{ flex: 0, height: 24 }} />
+    </aside>
+  );
+};
 
 export default function HomePage() {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
@@ -150,14 +159,27 @@ export default function HomePage() {
   const [form, setForm] = useState<Partial<Utilisateur>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userEmail, setUserEmail] = useState<string>("");
+  const [userRole, setUserRole] = useState<number | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>("light");
   const palette = palettes[theme];
 
+
   useEffect(() => {
     fetchAllUsers();
-    fetchUserEmail();
+    fetchUserEmailAndRole();
     fetchConnexionsParMois();
   }, []);
+
+  // Récupère l'email et le rôle de l'utilisateur connecté
+  const fetchUserEmailAndRole = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUserEmail(data?.user?.email || "");
+    if (data?.user?.email) {
+      // On récupère le rôle depuis la table Utilisateur
+      const { data: userData } = await supabase.from("Utilisateur").select("role").eq("email", data.user.email).single();
+      setUserRole(userData?.role || null);
+    }
+  };
 
   // Récupère le nombre de connexions par mois depuis la table Connexion
   const fetchConnexionsParMois = async () => {
@@ -233,8 +255,119 @@ export default function HomePage() {
     (filterDomaine ? (u.domaines || []).includes(filterDomaine) : true)
   );
 
+  // Affichage différent selon le rôle
+  if (userRole === 2) {
+    // Interface utilisateur simple
+    return (
+      <div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
+        {/* Header */}
+        <header style={{
+          height: 64,
+          background: palette.secondary,
+          color: theme === 'dark' ? palette.white : palette.dark,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 32px 0 16px",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 200,
+          boxShadow: "0 2px 8px #0001"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <button
+              onClick={() => setSidebarOpen(o => !o)}
+              style={{
+                background: 'transparent',
+                border: `2px solid ${theme === 'dark' ? '#fff' : '#222'}`,
+                color: theme === 'dark' ? '#fff' : '#222',
+                fontSize: 28,
+                cursor: 'pointer',
+                marginRight: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+                width: 44,
+                height: 44,
+                transition: 'background 0.2s, border-color 0.2s, color 0.2s',
+                outline: 'none',
+              }}
+              aria-label="Ouvrir/fermer le menu"
+              onMouseOver={e => {
+                e.currentTarget.style.background = theme === 'dark' ? '#fff2' : '#2221';
+                e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+              }}
+            >
+              <span style={{ fontSize: 28, lineHeight: 1, color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>&#9776;</span>
+            </button>
+            <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1, color: theme === 'dark' ? '#fff' : palette.dark }}>Espace Utilisateur</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <button
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              style={{
+                background: palette.secondary,
+                color: palette.primary,
+                border: "none",
+                borderRadius: 8,
+                padding: "6px 16px",
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: "pointer",
+                marginRight: 8
+              }}
+              aria-label="Changer le mode clair/sombre"
+            >
+              {theme === "light" ? "🌞" : "🌙"}
+            </button>
+            <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px", color: theme === 'dark' ? '#fff' : palette.dark }}>{userEmail}</span>
+            <button
+              onClick={handleLogout}
+              style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+            >Déconnexion</button>
+          </div>
+        </header>
+        {/* Sidebar utilisateur */}
+        <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={palette} role={2} />
+        {/* Contenu utilisateur simple */}
+        <main style={{
+          flex: 1,
+          padding: 32,
+          maxWidth: 900,
+          margin: "0 auto",
+          width: "100%",
+          marginLeft: sidebarOpen ? 220 : 0,
+          marginTop: 8,
+          transition: "margin-left 0.3s cubic-bezier(.4,2,.6,1)",
+          background: palette.gray100,
+          color: theme === 'dark' ? palette.white : palette.dark
+        }}>
+          <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 24 }}>Bienvenue sur votre espace utilisateur</h2>
+          <div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 32, marginBottom: 24 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Votre profil</div>
+            <div><b>Email :</b> {userEmail}</div>
+            {/* Ajoute ici d'autres infos utilisateur */}
+          </div>
+          <div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 32 }}>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Vos domaines autorisés</div>
+            {/* Affichage des domaines */}
+            {/* ... */}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Sinon, interface admin classique
   return (
-  <div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
+    <div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
       {/* Header */}
       <header style={{
         height: 64,
@@ -312,7 +445,7 @@ export default function HomePage() {
         </div>
       </header>
       {/* Sidebar */}
-  <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} />
+  <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} role={userRole || 1} />
       {/* Main content */}
       <main
         style={{
