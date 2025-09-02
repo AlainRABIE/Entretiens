@@ -77,11 +77,14 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
   <span style={{ background: color, color: palette.white, borderRadius: 8, padding: "2px 10px", fontSize: 13, fontWeight: 700, marginRight: 6 }}>{children}</span>
 );
 
+
 const sidebarLinks = [
-  { label: "Utilisateurs", icon: "👤" },
-  { label: "Sous-domaines", icon: "🌐" },
-  { label: "Journal", icon: "📝" },
+  { label: "Home", icon: "🏠", href: "/home" },
+  { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
+  { label: "Sous-domaines", icon: "🌐", href: "#" },
+  { label: "Journal", icon: "📝", href: "#" },
 ];
+
 
 
 const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: boolean; palette: any }) => (
@@ -97,7 +100,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
       transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
       overflow: "hidden",
       position: "fixed",
-      top: 64, // commence sous le header
+      top: 64,
       left: 0,
       zIndex: 100,
       borderTopRightRadius: 18,
@@ -109,7 +112,7 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
       {sidebarLinks.map(link => (
         <a
           key={link.label}
-          href="#"
+          href={link.href}
           style={{
             color: palette.dark,
             fontWeight: 600,
@@ -231,12 +234,12 @@ export default function HomePage() {
   );
 
   return (
-  <div style={{ minHeight: "100vh", background: palette.background || palette.gray100, paddingTop: 64 }}>
+  <div style={{ minHeight: "100vh", background: palette.background || palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
       {/* Header */}
       <header style={{
         height: 64,
         background: palette.secondary,
-        color: palette.white,
+        color: theme === 'dark' ? palette.white : palette.dark,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -254,7 +257,7 @@ export default function HomePage() {
             style={{
               background: "none",
               border: "none",
-              color: palette.white,
+              color: theme === 'dark' ? palette.white : palette.dark,
               fontSize: 28,
               cursor: "pointer",
               marginRight: 8,
@@ -263,9 +266,9 @@ export default function HomePage() {
             }}
             aria-label="Ouvrir/fermer le menu"
           >
-            <span style={{ fontSize: 28, lineHeight: 1 }}>&#9776;</span>
+            <span style={{ fontSize: 28, lineHeight: 1, color: theme === 'dark' ? palette.white : palette.dark }}>&#9776;</span>
           </button>
-          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>Dashboard Admin</span>
+          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1, color: theme === 'dark' ? palette.white : palette.dark }}>Dashboard Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           {/* Switch mode clair/sombre */}
@@ -286,7 +289,7 @@ export default function HomePage() {
           >
             {theme === "light" ? "🌞" : "🌙"}
           </button>
-          <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px" }}>{userEmail}</span>
+          <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px", color: theme === 'dark' ? palette.white : palette.dark }}>{userEmail}</span>
           <button
             onClick={handleLogout}
             style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
@@ -304,13 +307,12 @@ export default function HomePage() {
           margin: "0 auto",
           width: "100%",
           marginLeft: sidebarOpen ? 220 : 0,
-            marginTop: 8,
+          marginTop: 8,
           transition: "margin-left 0.3s cubic-bezier(.4,2,.6,1)",
           background: palette.gray100,
-          color: palette.dark
+          color: theme === 'dark' ? palette.white : palette.dark
         }}
       >
-        {/* Nouveau Dashboard moderne */}
         <div style={{
           display: "flex",
           gap: 32,
@@ -319,11 +321,11 @@ export default function HomePage() {
           alignItems: "stretch",
           justifyContent: "space-between"
         }}>
-          {/* Grand graphique connexions/inscriptions */}
           <div style={{ flex: 3, minWidth: 540, maxWidth: 1000 }}>
             <ChartComponent
               data={connexionsParMois}
               label="Connexions & Inscriptions"
+              theme={theme}
             />
           </div>
           {/* Camembert répartition rôles */}
@@ -366,23 +368,23 @@ export default function HomePage() {
 
         {/* Table utilisateurs */}
         <div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 0, overflow: "hidden", marginBottom: 24 }}>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 16, color: palette.white }}>
+          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 16, color: theme === 'dark' ? palette.white : palette.dark }}>
             <thead style={{ background: palette.secondary }}>
               <tr>
-                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Nom</th>
-                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Prénom</th>
-                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Email</th>
-                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Rôle</th>
-                <th style={{ padding: 16, textAlign: "left", color: palette.white, fontWeight: 800, fontSize: 15 }}>Sous-domaines</th>
-                <th style={{ padding: 16, textAlign: "center", color: palette.white, fontWeight: 800, fontSize: 15 }}>Actions</th>
+                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Nom</th>
+                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Prénom</th>
+                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Email</th>
+                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Rôle</th>
+                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Sous-domaines</th>
+                <th style={{ padding: 16, textAlign: "center", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((u: Utilisateur, idx) => (
                 <tr key={u.id} style={{ background: idx % 2 === 0 ? palette.secondary : palette.gray300, borderRadius: 12 }}>
-                  <td style={{ padding: 14, color: palette.white }}>{u.nom}</td>
-                  <td style={{ padding: 14, color: palette.white }}>{u.prenom}</td>
-                  <td style={{ padding: 14, color: palette.white }}>{u.email}</td>
+                  <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.nom}</td>
+                  <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.prenom}</td>
+                  <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.email}</td>
                   <td style={{ padding: 14 }}>
                     <Badge color={roles.find(r => r.value === u.role)?.color || palette.gray500} palette={palette}>
                       {roles.find(r => r.value === u.role)?.label || "?"}
@@ -392,8 +394,8 @@ export default function HomePage() {
                     {(u.domaines || []).map(d => <Badge key={d} color={palette.info} palette={palette}>{d}</Badge>)}
                   </td>
                   <td style={{ padding: 14, textAlign: "center" }}>
-                    <button onClick={() => handleEdit(u)} style={{ background: palette.info, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, marginRight: 8, cursor: "pointer" }}>Éditer</button>
-                    <button onClick={() => handleDelete(u.id)} style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}>Supprimer</button>
+                    <button onClick={() => handleEdit(u)} style={{ background: palette.info, color: theme === 'dark' ? palette.white : palette.dark, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, marginRight: 8, cursor: "pointer" }}>Éditer</button>
+                    <button onClick={() => handleDelete(u.id)} style={{ background: palette.danger, color: theme === 'dark' ? palette.white : palette.dark, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}>Supprimer</button>
                   </td>
                 </tr>
               ))}

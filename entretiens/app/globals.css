@@ -3,6 +3,7 @@
 :root {
   --background: #f6f8fa;
   --foreground: #22223b;
+  --text-color: #22223b;
 }
 
 
@@ -10,6 +11,7 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --text-color: #ededed;
     --card-bg: #181a20;
     --card-shadow: 0 4px 24px 0 rgba(0,0,0,0.45);
     --input-bg: #23242b;
@@ -22,7 +24,7 @@
     --muted: #23242b;
   }
   body {
-    color: var(--foreground);
+    color: var(--text-color);
   }
   .modern-card {
     background: var(--card-bg);
@@ -72,7 +74,7 @@
 
 body {
   background: linear-gradient(120deg, #f6f8fa 0%, #e9ecef 100%);
-  color: var(--foreground);
+  color: var(--text-color);
   font-family: 'Inter', Arial, Helvetica, sans-serif;
   min-height: 100vh;
   margin: 0;
@@ -102,7 +104,7 @@ body {
   padding: 2.5rem 2rem;
   max-width: 400px;
   width: 100%;
-  color: #22223b;
+  color: var(--text-color);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(34,34,59,0.06);
   animation: fadeIn 1.2s cubic-bezier(.39,.575,.565,1) both;
@@ -129,7 +131,7 @@ body {
   border-radius: 8px;
   border: 1px solid #eaeaea;
   background: #f5f6fa;
-  color: #4b4b5a;
+  color: var(--text-color);
   font-size: 1rem;
   margin-bottom: 1.2rem;
   transition: border 0.2s, box-shadow 0.2s;
