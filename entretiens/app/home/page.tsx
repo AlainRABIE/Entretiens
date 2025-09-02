@@ -87,7 +87,7 @@ const adminSidebarLinks = [
 
 const userSidebarLinks = [
   { label: "Accueil", icon: "🏠", href: "/home" },
-  { label: "Mon Profil", icon: "👤", href: "/profile" },
+  { label: "Mon Profil", icon: "👤", href: "/profil" },
   { label: "Mes Domaines", icon: "🌐", href: "#" },
 ];
 

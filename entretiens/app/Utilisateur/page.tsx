@@ -87,7 +87,8 @@ const sousDomaines = ["admin.monsite.com", "client.monsite.com"];
 const sidebarLinks = [
 	{ label: "Home", icon: "🏠", href: "/home" },
 	{ label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-	{ label: "Sous-domaines", icon: "🌐", href: "#" },
+	{ label: "Mon Profil", icon: "👤", href: "/profil" },
+	{ label: "Sous-domaines", icon: "🌐", href: "/sous-domaine" },
 	{ label: "Journal", icon: "📝", href: "#" },
 ];
 
@@ -142,6 +143,33 @@ const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: bool
 				</a>
 			))}
 		</nav>
+		<div style={{ padding: "0 10px", marginBottom: "20px" }}>
+			<button
+				onClick={onLogout}
+				style={{
+					width: "100%",
+					color: palette.white,
+					backgroundColor: palette.danger,
+					fontWeight: 600,
+					textDecoration: "none",
+					borderRadius: 10,
+					padding: "10px 16px",
+					margin: "2px 0",
+					display: "flex",
+					alignItems: "center",
+					gap: 10,
+					fontSize: 15,
+					border: "none",
+					cursor: "pointer",
+					transition: "background 0.18s",
+				}}
+				onMouseOver={e => (e.currentTarget.style.backgroundColor = palette.warning)}
+				onMouseOut={e => (e.currentTarget.style.backgroundColor = palette.danger)}
+			>
+				<span style={{ fontSize: 18 }}>🚪</span>
+				Déconnexion
+			</button>
+		</div>
 		<div style={{ flex: 0, height: 24 }} />
 	</aside>
 );
