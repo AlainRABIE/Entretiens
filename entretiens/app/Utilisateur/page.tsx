@@ -25,8 +25,8 @@ const palettes = {
 		danger: "#ea5455",
 		light: "#f8f8f8",
 		dark: "#4b4b5a",
-		gray100: "#fff",
-		gray200: "#f5f6fa",
+		gray100: "#f4f6fb", // fond général plus doux
+		gray200: "#e9ebf0", // blocs
 		gray300: "#eaeaea",
 		gray400: "#b9b9c3",
 		gray500: "#7367f0",
@@ -35,29 +35,29 @@ const palettes = {
 		gray800: "#4b4b5a",
 		gray900: "#222f3e",
 		white: "#fff",
-		background: "#fff"
+		background: "#f4f6fb"
 	},
 	dark: {
-		primary: "#15171c",
-		secondary: "#23272b",
+		primary: "#181c23",
+		secondary: "#22242a",
 		background: "#181c23",
-		accent: "#8ab4f8",
+		accent: "#3a4256",
 		success: "#22d3ee",
 		info: "#818cf8",
 		warning: "#facc15",
 		danger: "#ef4444",
 		light: "#23272b",
 		dark: "#ededed",
-		gray100: "#23272b",
-		gray200: "#2d3137",
-		gray300: "#35363c",
-		gray400: "#4b4b5a",
+		gray100: "#20232a", // fond général
+		gray200: "#23272b", // blocs
+		gray300: "#282c34",
+		gray400: "#35363c",
 		gray500: "#6b7280",
 		gray600: "#a1a1aa",
 		gray700: "#bfc7d5",
 		gray800: "#e0e6f0",
 		gray900: "#f8fafc",
-		white: "#181c23"
+		white: "#fff"
 	}
 };
 
@@ -183,7 +183,7 @@ export default function UtilisateurPage() {
 	};
 
 	return (
-		<div style={{ minHeight: "100vh", background: palette.background || palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
+		<div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
 			{/* Header */}
 			<header style={{
 				height: 64,
@@ -201,22 +201,36 @@ export default function UtilisateurPage() {
 				boxShadow: "0 2px 8px #0001"
 			}}>
 				<div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-					<button
-						onClick={() => setSidebarOpen(o => !o)}
-						style={{
-							background: "none",
-							border: "none",
-							color: palette.white,
-							fontSize: 28,
-							cursor: "pointer",
-							marginRight: 8,
-							display: "flex",
-							alignItems: "center"
-						}}
-						aria-label="Ouvrir/fermer le menu"
-					>
-						<span style={{ fontSize: 28, lineHeight: 1 }}>&#9776;</span>
-					</button>
+													<button
+														onClick={() => setSidebarOpen(o => !o)}
+														style={{
+															background: 'transparent',
+															border: `2px solid ${theme === 'dark' ? '#fff' : '#222'}`,
+															color: theme === 'dark' ? '#fff' : '#222',
+															fontSize: 28,
+															cursor: 'pointer',
+															marginRight: 8,
+															display: 'flex',
+															alignItems: 'center',
+															justifyContent: 'center',
+															borderRadius: '50%',
+															width: 44,
+															height: 44,
+															transition: 'background 0.2s, border-color 0.2s, color 0.2s',
+															outline: 'none',
+														}}
+														aria-label="Ouvrir/fermer le menu"
+														onMouseOver={e => {
+															e.currentTarget.style.background = theme === 'dark' ? '#fff2' : '#2221';
+															e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+														}}
+														onMouseOut={e => {
+															e.currentTarget.style.background = 'transparent';
+															e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+														}}
+													>
+														<span style={{ fontSize: 28, lineHeight: 1, color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>&#9776;</span>
+													</button>
 					<span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>Gestion des Utilisateurs</span>
 				</div>
 				<div style={{ display: "flex", alignItems: "center", gap: 18 }}>
@@ -259,10 +273,10 @@ export default function UtilisateurPage() {
 							marginTop: 8,
 							transition: "margin-left 0.3s cubic-bezier(.4,2,.6,1)",
 							background: palette.gray100,
-							   color: theme === 'dark' ? palette.white : palette.dark
+							color: theme === 'dark' ? palette.white : palette.dark
 						}}
 					>
-				<div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 0, overflow: "hidden", marginBottom: 24 }}>
+				<div style={{ background: palette.gray200, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 0, overflow: "hidden", marginBottom: 24 }}>
 					   <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 16, color: theme === 'dark' ? palette.white : palette.dark }}>
 						<thead style={{ background: palette.secondary }}>
 							<tr>
