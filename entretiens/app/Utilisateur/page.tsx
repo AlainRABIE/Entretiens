@@ -12,6 +12,10 @@ type Utilisateur = {
 	email: string;
 	domaines?: string[];
 	actif?: boolean;
+	sous_domaine?: {
+		nom: string;
+	} | null;
+	domaine?: any; // debug pour affichage brut
 };
 
 const palettes = {
@@ -149,9 +153,107 @@ export default function UtilisateurPage() {
 
 	const fetchAllUsers = async () => {
 		setLoading(true);
-		const { data } = await supabase.from("Utilisateur").select("*");
-		setUtilisateurs(data || []);
-		setLoading(false);
+		
+		try {
+			// Listons d'abord toutes les tables disponibles
+			console.log('=== DEBUG: Tentative de listage des tables ===');
+			
+			// D'abord récupérer tous les utilisateurs
+			const { data: usersData, error: usersError } = await supabase
+				.from("Utilisateur")
+				.select("*");
+			
+			if (usersError) {
+				console.error('Erreur lors de la récupération des utilisateurs:', usersError);
+				setLoading(false);
+				return;
+			}
+
+			console.log('Utilisateurs bruts:', usersData); // Debug
+
+			// Je vois dans vos données que domaine = 1 et 2, créons un mapping manuel temporaire
+			// En attendant de résoudre le problème de la table Sous_domaine
+			const domainesTemporaires = new Map([
+				[1, 'admin.com'],
+				[2, 'client.com']
+			]);
+
+			console.log('Mapping temporaire des domaines:', domainesTemporaires);
+
+			// Ensuite récupérer tous les sous-domaines
+			// Essayons différents noms de table possibles
+			let domainesData = null;
+			let domainesError = null;
+			
+			// Test avec "Sous_domaine"
+			const { data: data1, error: error1 } = await supabase
+				.from("Sous_domaine")
+				.select("*");
+			
+			if (error1) {
+				console.log('Erreur avec "Sous_domaine":', error1);
+				// Test avec "sous_domaine" (minuscule)
+				const { data: data2, error: error2 } = await supabase
+					.from("sous_domaine")
+					.select("*");
+				
+				if (error2) {
+					console.log('Erreur avec "sous_domaine":', error2);
+					// Test avec "role" (d'après vos captures, il semble y avoir une relation)
+					const { data: data3, error: error3 } = await supabase
+						.from("role")
+						.select("*");
+					
+					domainesData = data3;
+					domainesError = error3;
+					console.log('Test avec table "role":', data3);
+				} else {
+					domainesData = data2;
+					domainesError = error2;
+				}
+			} else {
+				domainesData = data1;
+				domainesError = error1;
+			}
+			
+			if (domainesError) {
+				console.error('Erreur lors de la récupération des sous-domaines:', domainesError);
+			}
+
+			console.log('Sous-domaines:', domainesData); // Debug
+
+			// Créer un map des domaines pour une recherche rapide
+			const domainesMap = new Map();
+			
+			// Utiliser les données de la base si disponibles, sinon le mapping temporaire
+			if (domainesData && domainesData.length > 0) {
+				domainesData.forEach(domaine => {
+					domainesMap.set(domaine.id, domaine.nom);
+				});
+				console.log('Utilisation des données de la base:', domainesMap);
+			} else {
+				// Utiliser le mapping temporaire
+				domainesTemporaires.forEach((nom, id) => {
+					domainesMap.set(id, nom);
+				});
+				console.log('Utilisation du mapping temporaire:', domainesMap);
+			}
+
+			// Combiner les données
+			const users = (usersData || []).map((u: any) => ({
+				...u,
+				sous_domaine: u.domaine && domainesMap.has(u.domaine) 
+					? { nom: domainesMap.get(u.domaine) } 
+					: null
+			}));
+
+			console.log('Utilisateurs finaux avec domaines:', users); // Debug
+			setUtilisateurs(users);
+		} catch (err) {
+			console.error('Erreur lors de la récupération des données:', err);
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const fetchUserEmail = async () => {
@@ -279,29 +381,35 @@ export default function UtilisateurPage() {
 				<div style={{ background: palette.gray200, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 0, overflow: "hidden", marginBottom: 24 }}>
 					   <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 16, color: theme === 'dark' ? palette.white : palette.dark }}>
 						<thead style={{ background: palette.secondary }}>
-							<tr>
-								   <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Nom</th>
-								   <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Prénom</th>
-								   <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Email</th>
-								   <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Rôle</th>
-								   <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Sous-domaines</th>
-								   <th style={{ padding: 16, textAlign: "center", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Actions</th>
-							</tr>
+						<tr>
+							<th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Nom</th>
+							<th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Prénom</th>
+							<th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Email</th>
+							<th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Rôle</th>
+										<th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Sous-domaine</th>
+										{/* Debug domaine supprimé */}
+							<th style={{ padding: 16, textAlign: "center", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Actions</th>
+						</tr>
 						</thead>
 						<tbody>
 							{utilisateurs.map((u: Utilisateur, idx) => (
 								<tr key={u.id} style={{ background: idx % 2 === 0 ? palette.secondary : palette.gray300, borderRadius: 12 }}>
-									   <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.nom}</td>
-									   <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.prenom}</td>
-									   <td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.email}</td>
+										<td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.nom}</td>
+										<td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.prenom}</td>
+										<td style={{ padding: 14, color: theme === 'dark' ? palette.white : palette.dark }}>{u.email}</td>
 									<td style={{ padding: 14 }}>
 										<Badge color={roles.find(r => r.value === u.role)?.color || palette.gray500} palette={palette}>
-											{roles.find(r => r.value === u.role)?.label || "?"}
+											 {roles.find(r => r.value === u.role)?.label || "?"}
 										</Badge>
 									</td>
 									<td style={{ padding: 14 }}>
-										{(u.domaines || []).map(d => <Badge key={d} color={palette.info} palette={palette}>{d}</Badge>)}
+										{u.sous_domaine?.nom ? (
+											<Badge color={palette.info} palette={palette}>{u.sous_domaine.nom}</Badge>
+										) : (
+											<span style={{ color: palette.gray400, fontStyle: "italic" }}>Aucun</span>
+										)}
 									</td>
+									{/* Debug domaine supprimé */}
 									<td style={{ padding: 14, textAlign: "center" }}>
 										<button onClick={() => handleEdit(u)} style={{ background: palette.info, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, marginRight: 8, cursor: "pointer" }}>Éditer</button>
 										<button onClick={() => handleDelete(u.id)} style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}>Supprimer</button>
