@@ -71,6 +71,17 @@ const roles = [
 	{ value: 2, label: "User", color: palettes.light.success },
 ];
 
+// Fonction pour déterminer la couleur du domaine
+const getDomaineColor = (domaineName: string, palette: any) => {
+	if (domaineName.includes('admin')) {
+		return palette.primary; // Même couleur que le rôle Admin
+	} else if (domaineName.includes('client')) {
+		return palette.success; // Couleur verte pour les clients
+	} else {
+		return palette.info; // Couleur par défaut
+	};
+};
+
 const sousDomaines = ["admin.monsite.com", "client.monsite.com"];
 
 const sidebarLinks = [
@@ -155,9 +166,6 @@ export default function UtilisateurPage() {
 		setLoading(true);
 		
 		try {
-			// Listons d'abord toutes les tables disponibles
-			console.log('=== DEBUG: Tentative de listage des tables ===');
-			
 			// D'abord récupérer tous les utilisateurs
 			const { data: usersData, error: usersError } = await supabase
 				.from("Utilisateur")
@@ -169,60 +177,22 @@ export default function UtilisateurPage() {
 				return;
 			}
 
-			console.log('Utilisateurs bruts:', usersData); // Debug
-
-			// Je vois dans vos données que domaine = 1 et 2, créons un mapping manuel temporaire
-			// En attendant de résoudre le problème de la table Sous_domaine
+			// Mapping temporaire basé sur vos données réelles
 			const domainesTemporaires = new Map([
 				[1, 'admin.com'],
 				[2, 'client.com']
 			]);
 
-			console.log('Mapping temporaire des domaines:', domainesTemporaires);
-
-			// Ensuite récupérer tous les sous-domaines
-			// Essayons différents noms de table possibles
-			let domainesData = null;
-			let domainesError = null;
-			
-			// Test avec "Sous_domaine"
-			const { data: data1, error: error1 } = await supabase
+			// Essayer de récupérer les sous-domaines de la base
+			const { data: domainesData, error: domainesError } = await supabase
 				.from("Sous_domaine")
 				.select("*");
 			
-			if (error1) {
-				console.log('Erreur avec "Sous_domaine":', error1);
-				// Test avec "sous_domaine" (minuscule)
-				const { data: data2, error: error2 } = await supabase
-					.from("sous_domaine")
-					.select("*");
-				
-				if (error2) {
-					console.log('Erreur avec "sous_domaine":', error2);
-					// Test avec "role" (d'après vos captures, il semble y avoir une relation)
-					const { data: data3, error: error3 } = await supabase
-						.from("role")
-						.select("*");
-					
-					domainesData = data3;
-					domainesError = error3;
-					console.log('Test avec table "role":', data3);
-				} else {
-					domainesData = data2;
-					domainesError = error2;
-				}
-			} else {
-				domainesData = data1;
-				domainesError = error1;
-			}
-			
 			if (domainesError) {
-				console.error('Erreur lors de la récupération des sous-domaines:', domainesError);
+				console.log('Utilisation du mapping temporaire car erreur Supabase:', domainesError.message);
 			}
 
-			console.log('Sous-domaines:', domainesData); // Debug
-
-			// Créer un map des domaines pour une recherche rapide
+			// Créer un map des domaines
 			const domainesMap = new Map();
 			
 			// Utiliser les données de la base si disponibles, sinon le mapping temporaire
@@ -230,13 +200,13 @@ export default function UtilisateurPage() {
 				domainesData.forEach(domaine => {
 					domainesMap.set(domaine.id, domaine.nom);
 				});
-				console.log('Utilisation des données de la base:', domainesMap);
+				console.log('✅ Utilisation des données de la base');
 			} else {
 				// Utiliser le mapping temporaire
 				domainesTemporaires.forEach((nom, id) => {
 					domainesMap.set(id, nom);
 				});
-				console.log('Utilisation du mapping temporaire:', domainesMap);
+				console.log('⚠️ Utilisation du mapping temporaire');
 			}
 
 			// Combiner les données
@@ -247,7 +217,6 @@ export default function UtilisateurPage() {
 					: null
 			}));
 
-			console.log('Utilisateurs finaux avec domaines:', users); // Debug
 			setUtilisateurs(users);
 		} catch (err) {
 			console.error('Erreur lors de la récupération des données:', err);
@@ -404,7 +373,12 @@ export default function UtilisateurPage() {
 									</td>
 									<td style={{ padding: 14 }}>
 										{u.sous_domaine?.nom ? (
-											<Badge color={palette.info} palette={palette}>{u.sous_domaine.nom}</Badge>
+											<Badge 
+												color={getDomaineColor(u.sous_domaine.nom, palette)} 
+												palette={palette}
+											>
+												{u.sous_domaine.nom}
+											</Badge>
 										) : (
 											<span style={{ color: palette.gray400, fontStyle: "italic" }}>Aucun</span>
 										)}
