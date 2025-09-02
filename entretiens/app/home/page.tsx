@@ -21,18 +21,18 @@ type Utilisateur = {
 
 const palettes = {
   light: {
-    primary: "#7367f0", // bleu/violet Vuexy
-    secondary: "#f5f6fa", // sidebar gris très clair
-    accent: "#e3e6fc", // bleu clair pour hover/active
-    success: "#28c76f", // vert doux
+    primary: "#7367f0",
+    secondary: "#f5f6fa",
+    accent: "#e3e6fc",
+    success: "#28c76f",
     info: "#00cfe8",
     warning: "#ff9f43",
     danger: "#ea5455",
     light: "#f8f8f8",
-    dark: "#4b4b5a", // texte principal
-    gray100: "#fff",
-    gray200: "#f5f6fa",
-    gray300: "#eaeaea", // bordures
+    dark: "#4b4b5a",
+    gray100: "#f4f6fb", // fond général plus doux
+    gray200: "#e9ebf0", // blocs
+    gray300: "#eaeaea",
     gray400: "#b9b9c3",
     gray500: "#7367f0",
     gray600: "#82868b",
@@ -40,29 +40,29 @@ const palettes = {
     gray800: "#4b4b5a",
     gray900: "#222f3e",
     white: "#fff",
-    background: "#fff"
+    background: "#f4f6fb"
   },
   dark: {
-    primary: "#15171c", // header très foncé
-    secondary: "#23272b", // sidebar/cartes gris foncé
-    background: "#181c23", // fond principal anthracite
-    accent: "#8ab4f8", // bleu accent doux
+    primary: "#181c23", // header très foncé
+    secondary: "#22242a", // sidebar/cartes gris foncé
+    background: "#181c23", // fond principal
+    accent: "#3a4256", // hover doux
     success: "#22d3ee",
     info: "#818cf8",
     warning: "#facc15",
     danger: "#ef4444",
     light: "#23272b",
-    dark: "#ededed", // texte principal très clair
-    gray100: "#23272b",
-    gray200: "#2d3137",
-    gray300: "#35363c",
-    gray400: "#4b4b5a",
+    dark: "#ededed",
+    gray100: "#20232a", // fond général
+    gray200: "#23272b", // blocs
+    gray300: "#282c34",
+    gray400: "#35363c",
     gray500: "#6b7280",
     gray600: "#a1a1aa",
     gray700: "#bfc7d5",
     gray800: "#e0e6f0",
     gray900: "#f8fafc",
-    white: "#181c23"
+    white: "#fff"
   }
 };
 
@@ -234,11 +234,11 @@ export default function HomePage() {
   );
 
   return (
-  <div style={{ minHeight: "100vh", background: palette.background || palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
+  <div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
       {/* Header */}
       <header style={{
         height: 64,
-        background: palette.secondary,
+  background: palette.gray200,
         color: theme === 'dark' ? palette.white : palette.dark,
         display: "flex",
         alignItems: "center",
@@ -249,26 +249,41 @@ export default function HomePage() {
         left: 0,
         right: 0,
         zIndex: 200,
-        boxShadow: "0 2px 8px #0001"
+  boxShadow: theme === 'dark' ? '0 2px 16px #0004' : '0 2px 16px #b9b9c322',
+  borderRadius: 18,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button
             onClick={() => setSidebarOpen(o => !o)}
             style={{
-              background: "none",
-              border: "none",
-              color: theme === 'dark' ? palette.white : palette.dark,
+              background: 'transparent',
+              border: `2px solid ${theme === 'dark' ? '#fff' : '#222'}`,
+              color: theme === 'dark' ? '#fff' : '#222',
               fontSize: 28,
-              cursor: "pointer",
+              cursor: 'pointer',
               marginRight: 8,
-              display: "flex",
-              alignItems: "center"
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              width: 44,
+              height: 44,
+              transition: 'background 0.2s, border-color 0.2s, color 0.2s',
+              outline: 'none',
             }}
             aria-label="Ouvrir/fermer le menu"
+            onMouseOver={e => {
+              e.currentTarget.style.background = theme === 'dark' ? '#fff2' : '#2221';
+              e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = theme === 'dark' ? '#fff' : '#222';
+            }}
           >
-            <span style={{ fontSize: 28, lineHeight: 1, color: theme === 'dark' ? palette.white : palette.dark }}>&#9776;</span>
+            <span style={{ fontSize: 28, lineHeight: 1, color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>&#9776;</span>
           </button>
-          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1, color: theme === 'dark' ? palette.white : palette.dark }}>Dashboard Admin</span>
+          <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1, color: theme === 'dark' ? '#fff' : palette.dark }}>Dashboard Admin</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           {/* Switch mode clair/sombre */}
@@ -289,7 +304,7 @@ export default function HomePage() {
           >
             {theme === "light" ? "🌞" : "🌙"}
           </button>
-          <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px", color: theme === 'dark' ? palette.white : palette.dark }}>{userEmail}</span>
+          <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: "6px 16px", color: theme === 'dark' ? '#fff' : palette.dark }}>{userEmail}</span>
           <button
             onClick={handleLogout}
             style={{ background: palette.danger, color: palette.white, border: "none", borderRadius: 8, padding: "10px 20px", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
