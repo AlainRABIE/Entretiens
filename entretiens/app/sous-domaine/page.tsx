@@ -147,7 +147,7 @@ const SousDomaineePage = () => {
   const getCurrentUserAndAccess = async () => {
     try {
       const { data: authUser, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError || !authUser.user) {
         router.push('/login');
         return;
@@ -225,7 +225,7 @@ const SousDomaineePage = () => {
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: palette.white,
+          backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Chargement des informations d'accès...
@@ -246,7 +246,7 @@ const SousDomaineePage = () => {
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: palette.light,
+          backgroundColor: theme === 'dark' ? palette.secondary : palette.light,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Informations d'accès non disponibles
@@ -258,7 +258,7 @@ const SousDomaineePage = () => {
   return (
     <div style={{ minHeight: "100vh", background: palette.gray100, paddingTop: 64, color: theme === 'dark' ? palette.white : palette.dark }}>
       {/* Header */}
-  <HeaderComp 
+      <HeaderComp
         title="Accès Sous-domaine"
         userEmail={userEmail}
         theme={theme}
@@ -268,10 +268,10 @@ const SousDomaineePage = () => {
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
       />
-      
+
       {/* Sidebar */}
-  <SidebarComp onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} />
-      
+      <SidebarComp onLogout={handleLogout} open={sidebarOpen} palette={{ ...palette, primary: palette.secondary }} />
+
       {/* Main content */}
       <main style={{
         marginLeft: sidebarOpen ? 220 : 0,
@@ -287,7 +287,7 @@ const SousDomaineePage = () => {
         }}>
           {/* Statut d'accès */}
           <div style={{
-            backgroundColor: palette.white,
+            backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
             padding: '30px',
             borderRadius: '12px',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -300,7 +300,7 @@ const SousDomaineePage = () => {
               {getStatusIcon(accessInfo.statut_acces)}
             </div>
             <h2 style={{
-              color: palette.dark,
+              color: theme === 'dark' ? palette.white : palette.dark,
               margin: '0 0 10px 0',
               fontSize: '24px',
               fontWeight: '600'
@@ -324,13 +324,13 @@ const SousDomaineePage = () => {
 
           {/* Informations de domaine */}
           <div style={{
-            backgroundColor: palette.white,
+            backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
             padding: '30px',
             borderRadius: '12px',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{
-              color: palette.dark,
+              color: theme === 'dark' ? palette.white : palette.dark,
               margin: '0 0 20px 0',
               fontSize: '22px',
               fontWeight: '600'
@@ -344,11 +344,11 @@ const SousDomaineePage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: palette.gray600, fontWeight: '500' }}>Domaine principal:</span>
-                <span style={{ 
-                  color: palette.dark,
+                <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>Domaine principal:</span>
+                <span style={{
+                  color: theme === 'dark' ? palette.white : palette.dark,
                   fontFamily: 'monospace',
-                  backgroundColor: palette.gray100,
+                  backgroundColor: theme === 'dark' ? palette.gray300 : palette.gray100,
                   padding: '4px 8px',
                   borderRadius: '4px'
                 }}>
@@ -361,11 +361,11 @@ const SousDomaineePage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: palette.gray600, fontWeight: '500' }}>Votre sous-domaine:</span>
-                <span style={{ 
+                <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>Votre sous-domaine:</span>
+                <span style={{
                   color: palette.primary,
                   fontFamily: 'monospace',
-                  backgroundColor: palette.accent,
+                  backgroundColor: theme === 'dark' ? palette.gray300 : palette.accent,
                   padding: '4px 8px',
                   borderRadius: '4px',
                   fontWeight: '600'
@@ -379,12 +379,12 @@ const SousDomaineePage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: palette.gray600, fontWeight: '500' }}>URL complète:</span>
+                <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>URL complète:</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ 
-                    color: palette.dark,
+                  <span style={{
+                    color: theme === 'dark' ? palette.white : palette.dark,
                     fontFamily: 'monospace',
-                    backgroundColor: palette.gray100,
+                    backgroundColor: theme === 'dark' ? palette.gray300 : palette.gray100,
                     padding: '4px 8px',
                     borderRadius: '4px'
                   }}>
@@ -394,7 +394,7 @@ const SousDomaineePage = () => {
                     onClick={() => navigator.clipboard.writeText(accessInfo.url_complete)}
                     style={{
                       padding: '4px 8px',
-                      backgroundColor: palette.gray400,
+                      backgroundColor: theme === 'dark' ? palette.gray500 : palette.gray400,
                       color: palette.white,
                       border: 'none',
                       borderRadius: '4px',
@@ -412,13 +412,13 @@ const SousDomaineePage = () => {
 
           {/* Actions et informations utilisateur */}
           <div style={{
-            backgroundColor: palette.white,
+            backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
             padding: '30px',
             borderRadius: '12px',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{
-              color: palette.dark,
+              color: theme === 'dark' ? palette.white : palette.dark,
               margin: '0 0 20px 0',
               fontSize: '22px',
               fontWeight: '600'
@@ -432,8 +432,8 @@ const SousDomaineePage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: palette.gray600, fontWeight: '500' }}>Utilisateur:</span>
-                <span style={{ color: palette.dark }}>
+                <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>Utilisateur:</span>
+                <span style={{ color: theme === 'dark' ? palette.white : palette.dark }}>
                   {user.prenom} {user.nom}
                 </span>
               </div>
@@ -443,8 +443,8 @@ const SousDomaineePage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: palette.gray600, fontWeight: '500' }}>Email:</span>
-                <span style={{ color: palette.dark }}>{user.email}</span>
+                <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>Email:</span>
+                <span style={{ color: theme === 'dark' ? palette.white : palette.dark }}>{user.email}</span>
               </div>
               {accessInfo.derniere_connexion && (
                 <div style={{
@@ -453,8 +453,8 @@ const SousDomaineePage = () => {
                   gap: '10px',
                   alignItems: 'center'
                 }}>
-                  <span style={{ color: palette.gray600, fontWeight: '500' }}>Dernière connexion:</span>
-                  <span style={{ color: palette.dark }}>
+                  <span style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, fontWeight: '500' }}>Dernière connexion:</span>
+                  <span style={{ color: theme === 'dark' ? palette.white : palette.dark }}>
                     {new Date(accessInfo.derniere_connexion).toLocaleString('fr-FR')}
                   </span>
                 </div>
@@ -483,7 +483,7 @@ const SousDomaineePage = () => {
               >
                 🚀 Accéder au sous-domaine
               </button>
-              
+
               <button
                 onClick={() => router.push('/client')}
                 disabled={accessInfo.statut_acces !== 'autorisé'}
@@ -501,7 +501,7 @@ const SousDomaineePage = () => {
               >
                 🏢 Aller au portail client
               </button>
-              
+
               <button
                 onClick={() => alert('Fonctionnalité de test de connexion')}
                 style={{
@@ -522,13 +522,13 @@ const SousDomaineePage = () => {
 
           {/* Restrictions et informations */}
           <div style={{
-            backgroundColor: palette.white,
+            backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
             padding: '30px',
             borderRadius: '12px',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
             <h2 style={{
-              color: palette.dark,
+              color: theme === 'dark' ? palette.white : palette.dark,
               margin: '0 0 20px 0',
               fontSize: '22px',
               fontWeight: '600'
@@ -536,16 +536,16 @@ const SousDomaineePage = () => {
               Informations importantes
             </h2>
             <div style={{
-              backgroundColor: palette.gray100,
+              backgroundColor: theme === 'dark' ? palette.gray300 : palette.gray100,
               padding: '20px',
               borderRadius: '8px',
-              border: `1px solid ${palette.gray300}`
+              border: `1px solid ${theme === 'dark' ? palette.gray400 : palette.gray300}`
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <span style={{ fontSize: '20px' }}>ℹ️</span>
                 <div>
                   <h3 style={{
-                    color: palette.dark,
+                    color: theme === 'dark' ? palette.white : palette.dark,
                     margin: '0 0 10px 0',
                     fontSize: '16px',
                     fontWeight: '600'
@@ -553,11 +553,11 @@ const SousDomaineePage = () => {
                     Accès restreint
                   </h3>
                   <p style={{
-                    color: palette.gray700,
+                    color: theme === 'dark' ? palette.gray800 : palette.gray700,
                     margin: 0,
                     lineHeight: '1.5'
                   }}>
-                    Vous avez uniquement accès au sous-domaine <strong>{accessInfo.sous_domaine}.{accessInfo.domaine_principal}</strong>. 
+                    Vous avez uniquement accès au sous-domaine <strong>{accessInfo.sous_domaine}.{accessInfo.domaine_principal}</strong>.
                     Cet accès est lié à votre compte utilisateur et vos permissions.
                     Pour toute demande de modification d'accès, veuillez contacter votre administrateur.
                   </p>

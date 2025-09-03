@@ -110,7 +110,7 @@ const ProfilPage = () => {
     <aside style={{ width: open ? 220 : 0, background: palette.secondary, color: palette.dark, minHeight: '100vh', display: 'flex', flexDirection: 'column', boxShadow: open ? '2px 0 16px #0002' : undefined, transition: 'width 0.3s cubic-bezier(.4,2,.6,1)', overflow: 'hidden', position: 'fixed', top: 64, left: 0, zIndex: 100, borderTopRightRadius: 18, borderBottomRightRadius: 18 }}>
       <div style={{ height: 32 }} />
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, padding: '0 10px' }}>
-        {[{ label: 'Home', icon: '🏠', href: '/home' }, { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' }, { label: 'Mon Profil', icon: '👤', href: '/profil' }].map((link) => (
+        {[{ label: 'Home', icon: '🏠', href: '/home' }, { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' }, { label: 'Mon Profil', icon: '👤', href: '/profil' }, { label: 'Domaine', icon: '🌐', href: '/sous-domaine' }].map((link) => (
           <a key={link.label} href={link.href} style={{ color: palette.dark, fontWeight: 600, textDecoration: 'none', borderRadius: 10, padding: '10px 16px', margin: '2px 0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 15 }}>
             <span style={{ fontSize: 18 }}>{link.icon}</span>
             {link.label}
@@ -227,7 +227,7 @@ const ProfilPage = () => {
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: palette.white,
+          backgroundColor: themeMode === 'dark' ? palette.secondary : palette.white,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Chargement...
@@ -248,7 +248,7 @@ const ProfilPage = () => {
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: palette.white,
+          backgroundColor: themeMode === 'dark' ? palette.secondary : palette.white,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Utilisateur non trouvé
@@ -283,7 +283,7 @@ const ProfilPage = () => {
         marginLeft: sidebarOpen ? 220 : 0,
         color: themeMode === 'dark' ? palette.white : palette.dark
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0 20px', color: themeMode === 'dark' ? palette.white : palette.dark }}>
           <h1 style={{ margin: 0, fontSize: 28 }}>Mon Profil</h1>
           <button
             onClick={() => router.push('/Utilisateur')}
