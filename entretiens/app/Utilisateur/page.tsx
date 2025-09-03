@@ -89,7 +89,6 @@ const sidebarLinks = [
 	{ label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
 	{ label: "Mon Profil", icon: "👤", href: "/profil" },
 	{ label: "Sous-domaines", icon: "🌐", href: "/sous-domaine" },
-	{ label: "Journal", icon: "📝", href: "#" },
 ];
 
 const Badge = ({ color, children, palette }: { color: string; children: any; palette: any }) => (

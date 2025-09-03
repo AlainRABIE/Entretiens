@@ -13,10 +13,20 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
     } else {
+      // Log connexion (meilleure-effort)
+      try {
+        if (data?.user) {
+          await supabase.from('connexions').insert({
+            auth_id: data.user.id,
+            email: email,
+            event: 'login'
+          });
+        }
+      } catch (_) {}
       window.location.href = "/home";
     }
     setLoading(false);

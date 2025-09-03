@@ -111,9 +111,14 @@ const ProfilPage = () => {
       { label: 'Home', icon: '🏠', href: '/home' },
       { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' },
       { label: 'Mon Profil', icon: '👤', href: '/profil' },
-      { label: 'Domaine', icon: '🌐', href: '/sous-domaine' }
+      { label: 'Domaine', icon: '🌐', href: '/sous-domaine' },
+      { label: 'Console', icon: '🖥️', href: '/admin/console', adminOnly: true }
     ];
-    const visibleLinks = role === 2 ? defaultLinks.filter(l => l.label !== 'Utilisateurs') : defaultLinks;
+    const visibleLinks = defaultLinks.filter(l => {
+      if ((l as any).adminOnly && role !== 1) return false;
+      if (role === 2 && l.label === 'Utilisateurs') return false;
+      return true;
+    });
     return (
       <aside style={{ width: open ? 220 : 0, background: palette.secondary, color: palette.dark, minHeight: '100vh', display: 'flex', flexDirection: 'column', boxShadow: open ? '2px 0 16px #0002' : undefined, transition: 'width 0.3s cubic-bezier(.4,2,.6,1)', overflow: 'hidden', position: 'fixed', top: 64, left: 0, zIndex: 100, borderTopRightRadius: 18, borderBottomRightRadius: 18 }}>
         <div style={{ height: 32 }} />
@@ -211,6 +216,16 @@ const ProfilPage = () => {
 
   // Déconnexion locale (utilisée par Header/Sidebar)
   const handleLogout = async () => {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        await supabase.from('Connexions').insert({
+          auth_id: data.user.id,
+          email: userEmail || data.user.email,
+          event: 'logout'
+        });
+      }
+    } catch (_) {}
     await supabase.auth.signOut();
     router.push('/login');
   };

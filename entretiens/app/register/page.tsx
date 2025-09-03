@@ -20,11 +20,21 @@ export default function RegisterPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setError(error.message);
     } else {
       setSuccess("Inscription réussie ! Vérifiez votre email pour valider votre compte.");
+      // Log inscription (meilleure-effort)
+      try {
+        if (data?.user) {
+          await supabase.from('connexions').insert({
+            auth_id: data.user.id,
+            email: email,
+            event: 'signup'
+          });
+        }
+      } catch (_) {}
     }
     setLoading(false);
   };
