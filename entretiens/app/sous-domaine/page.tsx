@@ -178,11 +178,19 @@ const SousDomaineePage = () => {
 
       // Simulation des informations d'accès au sous-domaine
       // Dans un vrai projet, ces données viendraient de votre base de données
+  const domaine_principal = "carpediem.pro";
+  const isAdmin = userData.role === 1;
+  const sous_domaine = isAdmin ? "admin" : (userData.sous_domaine || "client");
+      const isActive = userData.actif !== false; // indéfini/null => autorisé par défaut
+  const statut_acces: AccessInfo["statut_acces"] = isAdmin
+        ? 'autorisé'
+        : (isActive ? 'autorisé' : 'bloqué');
+
       const mockAccessInfo: AccessInfo = {
-        domaine_principal: "https://www.carpediem.pro/",
-        sous_domaine: userData.sous_domaine || "client",
-        url_complete: `${userData.sous_domaine || "client"}.https://www.carpediem.pro/`,
-        statut_acces: userData.actif ? 'autorisé' : 'bloqué',
+        domaine_principal,
+        sous_domaine,
+        url_complete: `https://${sous_domaine}.${domaine_principal}`,
+        statut_acces,
         derniere_connexion: new Date().toISOString()
       };
 
@@ -209,6 +217,15 @@ const SousDomaineePage = () => {
       case 'restreint': return '⚠️';
       case 'bloqué': return '❌';
       default: return '❓';
+    }
+  };
+
+  const getRoleName = (role?: number) => {
+    switch (role) {
+      case 1: return 'Administrateur';
+      case 2: return 'Utilisateur Standard';
+      case 3: return 'Invité';
+      default: return 'Utilisateur';
     }
   };
 
@@ -419,7 +436,7 @@ const SousDomaineePage = () => {
             </div>
           </div>
 
-          {/* Actions et informations utilisateur */}
+            {/* Actions et informations utilisateur */}
           <div style={{
             backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
             padding: '30px',
@@ -529,6 +546,126 @@ const SousDomaineePage = () => {
             </div>
           </div>
 
+          {/* Badge de rôle */}
+          <div style={{
+            backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
+            padding: '20px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{
+                color: theme === 'dark' ? palette.white : palette.dark,
+                margin: 0,
+                fontSize: '18px',
+                fontWeight: 600
+              }}>
+                Votre rôle
+              </h3>
+              <span style={{
+                display: 'inline-block',
+                padding: '6px 12px',
+                borderRadius: 999,
+                backgroundColor: user.role === 1 ? palette.primary : palette.gray400,
+                color: palette.white,
+                fontWeight: 600,
+                fontSize: 13
+              }}>
+                {getRoleName(user.role)}
+              </span>
+            </div>
+          </div>
+
+          {/* Section spécifique Administrateur */}
+          {user.role === 1 && (
+            <div style={{
+              backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h2 style={{
+                color: theme === 'dark' ? palette.white : palette.dark,
+                margin: '0 0 16px 0',
+                fontSize: '22px',
+                fontWeight: 600
+              }}>
+                Outils d'administration
+              </h2>
+              <p style={{ color: theme === 'dark' ? palette.gray700 : palette.gray600, marginTop: 0 }}>
+                Accédez rapidement aux fonctionnalités de gestion liées à votre sous-domaine.
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <button onClick={() => router.push('/Utilisateur')} style={{
+                  padding: '10px 16px',
+                  backgroundColor: palette.info,
+                  color: palette.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}>
+                  👥 Gérer les utilisateurs
+                </button>
+                <button onClick={() => alert('Ouverture des paramètres du domaine (à implémenter)')} style={{
+                  padding: '10px 16px',
+                  backgroundColor: palette.warning,
+                  color: palette.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}>
+                  ⚙️ Paramètres du domaine
+                </button>
+                <button onClick={() => alert('Affichage des journaux (à implémenter)')} style={{
+                  padding: '10px 16px',
+                  backgroundColor: palette.dark,
+                  color: palette.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}>
+                  📝 Voir les journaux
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Section spécifique Utilisateur Standard */}
+          {user.role === 2 && (
+            <div style={{
+              backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h2 style={{
+                color: theme === 'dark' ? palette.white : palette.dark,
+                margin: '0 0 16px 0',
+                fontSize: '22px',
+                fontWeight: 600
+              }}>
+                Aide et support
+              </h2>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ fontSize: 20 }}>💡</span>
+                  <p style={{ margin: 0, color: theme === 'dark' ? palette.gray700 : palette.gray700 }}>
+                    Si vous avez besoin d'accès supplémentaires ou d'un nouveau sous-domaine, contactez votre administrateur.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{ fontSize: 20 }}>📧</span>
+                  <p style={{ margin: 0, color: theme === 'dark' ? palette.gray700 : palette.gray700 }}>
+                    Support: <a href="mailto:support@carpediem.pro">support@carpediem.pro</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Restrictions et informations */}
           <div style={{
             backgroundColor: theme === 'dark' ? palette.secondary : palette.white,
@@ -553,23 +690,47 @@ const SousDomaineePage = () => {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <span style={{ fontSize: '20px' }}>ℹ️</span>
                 <div>
-                  <h3 style={{
-                    color: theme === 'dark' ? palette.white : palette.dark,
-                    margin: '0 0 10px 0',
-                    fontSize: '16px',
-                    fontWeight: '600'
-                  }}>
-                    Accès restreint
-                  </h3>
-                  <p style={{
-                    color: theme === 'dark' ? palette.gray800 : palette.gray700,
-                    margin: 0,
-                    lineHeight: '1.5'
-                  }}>
-                    Vous avez uniquement accès au sous-domaine <strong>{accessInfo.sous_domaine}.{accessInfo.domaine_principal}</strong>.
-                    Cet accès est lié à votre compte utilisateur et vos permissions.
-                    Pour toute demande de modification d'accès, veuillez contacter votre administrateur.
-                  </p>
+                    {user.role === 1 ? (
+                      <>
+                        <h3 style={{
+                          color: theme === 'dark' ? palette.white : palette.dark,
+                          margin: '0 0 10px 0',
+                          fontSize: '16px',
+                          fontWeight: '600'
+                        }}>
+                          Accès administrateur
+                        </h3>
+                        <p style={{
+                          color: theme === 'dark' ? palette.gray800 : palette.gray700,
+                          margin: 0,
+                          lineHeight: '1.5'
+                        }}>
+                          Vous disposez d'un accès administrateur au domaine <strong>{accessInfo.domaine_principal}</strong>.
+                          Vous pouvez gérer les sous-domaines, les utilisateurs et les paramètres du domaine.
+                          Utilisez les outils d'administration ci-dessus pour accéder rapidement aux fonctionnalités clés.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 style={{
+                          color: theme === 'dark' ? palette.white : palette.dark,
+                          margin: '0 0 10px 0',
+                          fontSize: '16px',
+                          fontWeight: '600'
+                        }}>
+                          Accès restreint
+                        </h3>
+                        <p style={{
+                          color: theme === 'dark' ? palette.gray800 : palette.gray700,
+                          margin: 0,
+                          lineHeight: '1.5'
+                        }}>
+                          Vous avez uniquement accès au sous-domaine <strong>{accessInfo.sous_domaine}.{accessInfo.domaine_principal}</strong>.
+                          Cet accès est lié à votre compte utilisateur et vos permissions.
+                          Pour toute demande de modification d'accès, veuillez contacter votre administrateur.
+                        </p>
+                      </>
+                    )}
                 </div>
               </div>
             </div>
