@@ -115,22 +115,31 @@ const SousDomaineePage = () => {
       </div>
     </header>
   );
-  const FallbackSidebar = ({ onLogout, open, palette }: any) => (
-    <aside style={{ width: open ? 220 : 0, background: palette.secondary, color: palette.dark, minHeight: '100vh', display: 'flex', flexDirection: 'column', boxShadow: open ? '2px 0 16px #0002' : undefined, transition: 'width 0.3s cubic-bezier(.4,2,.6,1)', overflow: 'hidden', position: 'fixed', top: 64, left: 0, zIndex: 100, borderTopRightRadius: 18, borderBottomRightRadius: 18 }}>
-      <div style={{ height: 32 }} />
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, padding: '0 10px' }}>
-        {[{ label: 'Home', icon: '🏠', href: '/home' }, { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' }, { label: 'Mon Profil', icon: '👤', href: '/profil' }, { label: 'Sous-domaines', icon: '🌐', href: '/sous-domaine' }].map((link) => (
-          <a key={link.label} href={link.href} style={{ color: palette.dark, fontWeight: 600, textDecoration: 'none', borderRadius: 10, padding: '10px 16px', margin: '2px 0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 15 }}>
-            <span style={{ fontSize: 18 }}>{link.icon}</span>
-            {link.label}
-          </a>
-        ))}
-      </nav>
-      <div style={{ padding: '0 10px', marginBottom: 20 }}>
-        <button onClick={onLogout} style={{ width: '100%', color: palette.white, backgroundColor: palette.danger, fontWeight: 600, borderRadius: 10, padding: '10px 16px', border: 'none', cursor: 'pointer' }}>Déconnexion</button>
-      </div>
-    </aside>
-  );
+  const FallbackSidebar = ({ onLogout, open, palette, role }: any) => {
+    const defaultLinks = [
+      { label: 'Home', icon: '🏠', href: '/home' },
+      { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' },
+      { label: 'Mon Profil', icon: '👤', href: '/profil' },
+      { label: 'Domaine', icon: '🌐', href: '/sous-domaine' }
+    ];
+    const visibleLinks = role === 2 ? defaultLinks.filter(l => l.label !== 'Utilisateurs') : defaultLinks;
+    return (
+      <aside style={{ width: open ? 220 : 0, background: palette.secondary, color: palette.dark, minHeight: '100vh', display: 'flex', flexDirection: 'column', boxShadow: open ? '2px 0 16px #0002' : undefined, transition: 'width 0.3s cubic-bezier(.4,2,.6,1)', overflow: 'hidden', position: 'fixed', top: 64, left: 0, zIndex: 100, borderTopRightRadius: 18, borderBottomRightRadius: 18 }}>
+        <div style={{ height: 32 }} />
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, padding: '0 10px' }}>
+          {visibleLinks.map((link) => (
+            <a key={link.label} href={link.href} style={{ color: palette.dark, fontWeight: 600, textDecoration: 'none', borderRadius: 10, padding: '10px 16px', margin: '2px 0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 15 }}>
+              <span style={{ fontSize: 18 }}>{link.icon}</span>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        <div style={{ padding: '0 10px', marginBottom: 20 }}>
+          <button onClick={onLogout} style={{ width: '100%', color: palette.white, backgroundColor: palette.danger, fontWeight: 600, borderRadius: 10, padding: '10px 16px', border: 'none', cursor: 'pointer' }}>Déconnexion</button>
+        </div>
+      </aside>
+    );
+  };
   const HeaderComp: any = (Shared as any)?.Header || FallbackHeader;
   const SidebarComp: any = (Shared as any)?.Sidebar || FallbackSidebar;
 
@@ -270,7 +279,7 @@ const SousDomaineePage = () => {
       />
 
       {/* Sidebar */}
-      <SidebarComp onLogout={handleLogout} open={sidebarOpen} palette={{ ...palette, primary: palette.secondary }} />
+  <SidebarComp onLogout={handleLogout} open={sidebarOpen} palette={{ ...palette, primary: palette.secondary }} role={user?.role} />
 
       {/* Main content */}
       <main style={{
