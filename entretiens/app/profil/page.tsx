@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import * as Shared from "../components/SharedComponents";
 
 type UserProfile = {
   id: number;
@@ -24,9 +25,10 @@ const ProfilPage = () => {
     prenom: "",
     email: "",
   });
-  const router = useRouter();
-
-  const palettes = {
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>("light");
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const localPalettes = {
     light: {
       primary: "#7367f0",
       secondary: "#f5f6fa",
@@ -48,10 +50,81 @@ const ProfilPage = () => {
       gray900: "#222f3e",
       white: "#fff",
       background: "#f4f6fb"
+    },
+    dark: {
+      primary: "#181c23",
+      secondary: "#22242a",
+      background: "#181c23",
+      accent: "#3a4256",
+      success: "#22d3ee",
+      info: "#818cf8",
+      warning: "#fbbf24",
+      danger: "#f87171",
+      light: "#374151",
+      dark: "#f9fafb",
+      gray100: "#1f2937",
+      gray200: "#111827",
+      gray300: "#374151",
+      gray400: "#4b5563",
+      gray500: "#6b7280",
+      gray600: "#a1a1aa",
+      gray700: "#bfc7d5",
+      gray800: "#e0e6f0",
+      gray900: "#f8fafc",
+      white: "#fff"
     }
-  };
-
-  const theme = palettes.light;
+  } as const;
+  const palette = (Shared as any)?.palettes?.[themeMode] || localPalettes[themeMode];
+  // Fallback Header/Sidebar si les exports ne sont pas résolus
+  const FallbackHeader = ({
+    title,
+    userEmail,
+    theme,
+    setTheme,
+    palette,
+    sidebarOpen,
+    setSidebarOpen,
+    onLogout
+  }: any) => (
+    <header style={{
+      height: 64,
+      background: palette.secondary,
+      color: theme === 'dark' ? palette.white : palette.dark,
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 32px 0 16px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, boxShadow: '0 2px 8px #0001'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button onClick={() => setSidebarOpen((o: boolean) => !o)} style={{ background: 'transparent', border: `2px solid ${theme === 'dark' ? '#fff' : '#222'}`, color: theme === 'dark' ? '#fff' : '#222', fontSize: 28, cursor: 'pointer', marginRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', width: 44, height: 44 }}>
+          <span style={{ fontSize: 28 }}>&#9776;</span>
+        </button>
+        <span style={{ fontWeight: 900, fontSize: 22, letterSpacing: 1 }}>{title}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} style={{ background: palette.secondary, color: palette.primary, border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 15, cursor: 'pointer', marginRight: 8 }}>{theme === 'light' ? '🌞' : '🌙'}</button>
+        <span style={{ fontWeight: 700, fontSize: 16, background: palette.secondary, borderRadius: 8, padding: '6px 16px' }}>{userEmail}</span>
+        <button onClick={onLogout} style={{ background: palette.danger, color: palette.white, border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Déconnexion</button>
+      </div>
+    </header>
+  );
+  const FallbackSidebar = ({ onLogout, open, palette }: any) => (
+    <aside style={{ width: open ? 220 : 0, background: palette.secondary, color: palette.dark, minHeight: '100vh', display: 'flex', flexDirection: 'column', boxShadow: open ? '2px 0 16px #0002' : undefined, transition: 'width 0.3s cubic-bezier(.4,2,.6,1)', overflow: 'hidden', position: 'fixed', top: 64, left: 0, zIndex: 100, borderTopRightRadius: 18, borderBottomRightRadius: 18 }}>
+      <div style={{ height: 32 }} />
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, padding: '0 10px' }}>
+        {[{ label: 'Home', icon: '🏠', href: '/home' }, { label: 'Utilisateurs', icon: '👤', href: '/Utilisateur' }, { label: 'Mon Profil', icon: '👤', href: '/profil' }].map((link) => (
+          <a key={link.label} href={link.href} style={{ color: palette.dark, fontWeight: 600, textDecoration: 'none', borderRadius: 10, padding: '10px 16px', margin: '2px 0', display: 'flex', alignItems: 'center', gap: 10, fontSize: 15 }}>
+            <span style={{ fontSize: 18 }}>{link.icon}</span>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+      <div style={{ padding: '0 10px', marginBottom: 20 }}>
+        <button onClick={onLogout} style={{ width: '100%', color: palette.white, backgroundColor: palette.danger, fontWeight: 600, borderRadius: 10, padding: '10px 16px', border: 'none', cursor: 'pointer' }}>Déconnexion</button>
+      </div>
+    </aside>
+  );
+  const HeaderComp: any = (Shared as any)?.Header || FallbackHeader;
+  const SidebarComp: any = (Shared as any)?.Sidebar || FallbackSidebar;
+  const router = useRouter();
 
   useEffect(() => {
     getCurrentUser();
@@ -86,12 +159,13 @@ const ProfilPage = () => {
         return;
       }
 
-      setUser(userData);
+  setUser(userData);
       setFormData({
         nom: userData.nom || "",
         prenom: userData.prenom || "",
         email: userData.email || "",
       });
+  setUserEmail(userData.email || "");
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -126,6 +200,7 @@ const ProfilPage = () => {
     }
   };
 
+  // Déconnexion locale (utilisée par Header/Sidebar)
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
@@ -147,12 +222,12 @@ const ProfilPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.background
+        backgroundColor: palette.gray100
       }}>
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: theme.white,
+          backgroundColor: palette.white,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Chargement...
@@ -168,12 +243,12 @@ const ProfilPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.background
+        backgroundColor: palette.gray100
       }}>
         <div style={{
           padding: '20px',
           borderRadius: '12px',
-          backgroundColor: theme.white,
+          backgroundColor: palette.white,
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
         }}>
           Utilisateur non trouvé
@@ -183,73 +258,59 @@ const ProfilPage = () => {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: theme.background,
-      padding: '20px'
-    }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px',
-        padding: '20px',
-        backgroundColor: theme.white,
-        borderRadius: '12px',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+    <div style={{ minHeight: '100vh', background: palette.gray100, paddingTop: 64, color: themeMode === 'dark' ? palette.white : palette.dark }}>
+      {/* Header (menubar) */}
+  <HeaderComp
+        title="Mon Profil"
+        userEmail={userEmail}
+        theme={themeMode}
+        setTheme={setThemeMode}
+        palette={palette}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        onLogout={handleLogout}
+      />
+
+      {/* Sidebar */}
+  <SidebarComp onLogout={handleLogout} open={sidebarOpen} palette={palette} />
+
+      {/* Main content */}
+      <main style={{
+        maxWidth: 1000,
+        margin: '16px auto',
+        padding: '0 16px 40px',
+        transition: 'margin-left 0.3s cubic-bezier(.4,2,.6,1)',
+        marginLeft: sidebarOpen ? 220 : 0,
+        color: themeMode === 'dark' ? palette.white : palette.dark
       }}>
-        <h1 style={{
-          color: theme.dark,
-          margin: 0,
-          fontSize: '28px',
-          fontWeight: '600'
-        }}>
-          Mon Profil
-        </h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0 20px' }}>
+          <h1 style={{ margin: 0, fontSize: 28 }}>Mon Profil</h1>
           <button
             onClick={() => router.push('/Utilisateur')}
             style={{
               padding: '10px 20px',
-              backgroundColor: theme.info,
-              color: theme.white,
+              backgroundColor: palette.info,
+              color: palette.white,
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 8,
               cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
+              fontSize: 14,
+              fontWeight: 600
             }}
           >
             Retour
           </button>
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: theme.danger,
-              color: theme.white,
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Déconnexion
-          </button>
         </div>
-      </div>
 
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        display: 'grid',
-        gap: '20px'
-      }}>
+        <div style={{
+          maxWidth: '800px',
+          margin: '0 auto',
+          display: 'grid',
+          gap: '20px'
+        }}>
         {/* Informations principales */}
         <div style={{
-          backgroundColor: theme.white,
+          backgroundColor: palette.secondary,
           padding: '30px',
           borderRadius: '12px',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
@@ -261,7 +322,7 @@ const ProfilPage = () => {
             marginBottom: '20px'
           }}>
             <h2 style={{
-              color: theme.dark,
+              color: themeMode === 'dark' ? palette.white : palette.dark,
               margin: 0,
               fontSize: '22px',
               fontWeight: '600'
@@ -272,8 +333,8 @@ const ProfilPage = () => {
               onClick={() => setEditing(!editing)}
               style={{
                 padding: '8px 16px',
-                backgroundColor: editing ? theme.gray400 : theme.primary,
-                color: theme.white,
+                backgroundColor: editing ? palette.gray400 : palette.primary,
+                color: palette.white,
                 border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
@@ -290,7 +351,7 @@ const ProfilPage = () => {
                 <label style={{
                   display: 'block',
                   marginBottom: '5px',
-                  color: theme.dark,
+                  color: themeMode === 'dark' ? palette.white : palette.dark,
                   fontWeight: '500'
                 }}>
                   Nom
@@ -302,7 +363,7 @@ const ProfilPage = () => {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    border: `1px solid ${theme.gray300}`,
+                    border: `1px solid ${palette.gray300}`,
                     borderRadius: '8px',
                     fontSize: '14px'
                   }}
@@ -312,7 +373,7 @@ const ProfilPage = () => {
                 <label style={{
                   display: 'block',
                   marginBottom: '5px',
-                  color: theme.dark,
+                  color: themeMode === 'dark' ? palette.white : palette.dark,
                   fontWeight: '500'
                 }}>
                   Prénom
@@ -324,7 +385,7 @@ const ProfilPage = () => {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    border: `1px solid ${theme.gray300}`,
+                    border: `1px solid ${palette.gray300}`,
                     borderRadius: '8px',
                     fontSize: '14px'
                   }}
@@ -334,7 +395,7 @@ const ProfilPage = () => {
                 <label style={{
                   display: 'block',
                   marginBottom: '5px',
-                  color: theme.dark,
+                  color: themeMode === 'dark' ? palette.white : palette.dark,
                   fontWeight: '500'
                 }}>
                   Email
@@ -346,7 +407,7 @@ const ProfilPage = () => {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    border: `1px solid ${theme.gray300}`,
+                    border: `1px solid ${palette.gray300}`,
                     borderRadius: '8px',
                     fontSize: '14px'
                   }}
@@ -356,8 +417,8 @@ const ProfilPage = () => {
                 type="submit"
                 style={{
                   padding: '12px 24px',
-                  backgroundColor: theme.success,
-                  color: theme.white,
+                  backgroundColor: palette.success,
+                  color: palette.white,
                   border: 'none',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -377,8 +438,8 @@ const ProfilPage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: theme.gray600, fontWeight: '500' }}>Nom:</span>
-                <span style={{ color: theme.dark }}>{user.nom}</span>
+                <span style={{ color: palette.gray600, fontWeight: '500' }}>Nom:</span>
+                <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark }}>{user.nom}</span>
               </div>
               <div style={{
                 display: 'grid',
@@ -386,8 +447,8 @@ const ProfilPage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: theme.gray600, fontWeight: '500' }}>Prénom:</span>
-                <span style={{ color: theme.dark }}>{user.prenom}</span>
+                <span style={{ color: palette.gray600, fontWeight: '500' }}>Prénom:</span>
+                <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark }}>{user.prenom}</span>
               </div>
               <div style={{
                 display: 'grid',
@@ -395,8 +456,8 @@ const ProfilPage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: theme.gray600, fontWeight: '500' }}>Email:</span>
-                <span style={{ color: theme.dark }}>{user.email}</span>
+                <span style={{ color: palette.gray600, fontWeight: '500' }}>Email:</span>
+                <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark }}>{user.email}</span>
               </div>
               <div style={{
                 display: 'grid',
@@ -404,11 +465,11 @@ const ProfilPage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: theme.gray600, fontWeight: '500' }}>Rôle:</span>
+                <span style={{ color: palette.gray600, fontWeight: '500' }}>Rôle:</span>
                 <span style={{
-                  color: theme.dark,
+                  color: themeMode === 'dark' ? palette.white : palette.dark,
                   padding: '4px 12px',
-                  backgroundColor: theme.accent,
+                  backgroundColor: palette.accent,
                   borderRadius: '20px',
                   fontSize: '14px',
                   justifySelf: 'start'
@@ -422,9 +483,9 @@ const ProfilPage = () => {
                 gap: '10px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: theme.gray600, fontWeight: '500' }}>Statut:</span>
+                <span style={{ color: palette.gray600, fontWeight: '500' }}>Statut:</span>
                 <span style={{
-                  color: user.actif ? theme.success : theme.danger,
+                  color: user.actif ? palette.success : palette.danger,
                   fontWeight: '500'
                 }}>
                   {user.actif ? 'Actif' : 'Inactif'}
@@ -436,13 +497,13 @@ const ProfilPage = () => {
 
         {/* Informations de compte */}
         <div style={{
-          backgroundColor: theme.white,
+          backgroundColor: palette.secondary,
           padding: '30px',
           borderRadius: '12px',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
         }}>
           <h2 style={{
-            color: theme.dark,
+            color: themeMode === 'dark' ? palette.white : palette.dark,
             margin: '0 0 20px 0',
             fontSize: '22px',
             fontWeight: '600'
@@ -456,8 +517,8 @@ const ProfilPage = () => {
               gap: '10px',
               alignItems: 'center'
             }}>
-              <span style={{ color: theme.gray600, fontWeight: '500' }}>ID Utilisateur:</span>
-              <span style={{ color: theme.dark, fontFamily: 'monospace' }}>{user.id}</span>
+              <span style={{ color: palette.gray600, fontWeight: '500' }}>ID Utilisateur:</span>
+              <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark, fontFamily: 'monospace' }}>{user.id}</span>
             </div>
             <div style={{
               display: 'grid',
@@ -465,9 +526,9 @@ const ProfilPage = () => {
               gap: '10px',
               alignItems: 'center'
             }}>
-              <span style={{ color: theme.gray600, fontWeight: '500' }}>Sous-domaine:</span>
+              <span style={{ color: palette.gray600, fontWeight: '500' }}>Sous-domaine:</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ color: theme.dark }}>
+                <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark }}>
                   {user.sous_domaine || 'Non assigné'}
                 </span>
                 {user.sous_domaine && (
@@ -475,8 +536,8 @@ const ProfilPage = () => {
                     onClick={() => router.push('/sous-domaine')}
                     style={{
                       padding: '4px 8px',
-                      backgroundColor: theme.info,
-                      color: theme.white,
+                      backgroundColor: palette.info,
+                      color: palette.white,
                       border: 'none',
                       borderRadius: '4px',
                       cursor: 'pointer',
@@ -494,14 +555,16 @@ const ProfilPage = () => {
               gap: '10px',
               alignItems: 'center'
             }}>
-              <span style={{ color: theme.gray600, fontWeight: '500' }}>Créé le:</span>
-              <span style={{ color: theme.dark }}>
+              <span style={{ color: palette.gray600, fontWeight: '500' }}>Créé le:</span>
+              <span style={{ color: themeMode === 'dark' ? palette.white : palette.dark }}>
                 {new Date(user.created_at).toLocaleDateString('fr-FR')}
               </span>
             </div>
           </div>
         </div>
-      </div>
+        {/* end container */}
+        </div>
+      </main>
     </div>
   );
 };

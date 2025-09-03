@@ -81,14 +81,14 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
 const adminSidebarLinks = [
   { label: "Home", icon: "🏠", href: "/home" },
   { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-  { label: "Sous-domaines", icon: "🌐", href: "#" },
+  { label: "Sous-domaines", icon: "🌐", href: "/sous-domaine" },
   { label: "Journal", icon: "📝", href: "#" },
 ];
 
 const userSidebarLinks = [
   { label: "Accueil", icon: "🏠", href: "/home" },
   { label: "Mon Profil", icon: "👤", href: "/profil" },
-  { label: "Mes Domaines", icon: "🌐", href: "#" },
+  { label: "Mes Domaines", icon: "🌐", href: "/sous-domaine" },
 ];
 
 
