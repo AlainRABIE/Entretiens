@@ -71,8 +71,6 @@ const roles = [
   { value: 2, label: "User", color: palettes.light.success },
 ];
 
-const sousDomaines = ["admin.monsite.com", "client.monsite.com"];
-
 const Badge = ({ color, children, palette }: { color: string; children: any; palette: any }) => (
   <span style={{ background: color, color: palette.white, borderRadius: 8, padding: "2px 10px", fontSize: 13, fontWeight: 700, marginRight: 6 }}>{children}</span>
 );
@@ -81,14 +79,12 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
 const adminSidebarLinks = [
   { label: "Home", icon: "🏠", href: "/home" },
   { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-  { label: "Sous-domaines", icon: "🌐", href: "/sous-domaine" },
   { label: "Journal", icon: "📝", href: "#" },
 ];
 
 const userSidebarLinks = [
   { label: "Accueil", icon: "🏠", href: "/home" },
   { label: "Mon Profil", icon: "👤", href: "/profil" },
-  { label: "Mes Domaines", icon: "🌐", href: "/sous-domaine" },
 ];
 
 
@@ -153,7 +149,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [editUser, setEditUser] = useState<Utilisateur | null>(null);
   const [filterRole, setFilterRole] = useState<number | null>(null);
-  const [filterDomaine, setFilterDomaine] = useState<string | null>(null);
   const [activityLog, setActivityLog] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<Partial<Utilisateur>>({});
@@ -251,8 +246,7 @@ export default function HomePage() {
   };
 
   const filteredUsers = utilisateurs.filter(u =>
-    (filterRole ? u.role === filterRole : true) &&
-    (filterDomaine ? (u.domaines || []).includes(filterDomaine) : true)
+  (filterRole ? u.role === filterRole : true)
   );
 
   // Affichage différent selon le rôle
@@ -356,9 +350,8 @@ export default function HomePage() {
             {/* Ajoute ici d'autres infos utilisateur */}
           </div>
           <div style={{ background: palette.secondary, borderRadius: 18, boxShadow: `0 2px 12px ${palette.gray200}`, padding: 32 }}>
-            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Vos domaines autorisés</div>
-            {/* Affichage des domaines */}
-            {/* ... */}
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Informations</div>
+            {/* Ajoutez ici des informations utiles pour l'utilisateur */}
           </div>
         </main>
       </div>
@@ -508,10 +501,6 @@ export default function HomePage() {
             <option value="">Tous les rôles</option>
             {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
-          <select value={filterDomaine ?? ''} onChange={e => setFilterDomaine(e.target.value || null)} style={{ padding: 8, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }}>
-            <option value="">Tous les sous-domaines</option>
-            {sousDomaines.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
         </div>
 
         {/* Table utilisateurs */}
@@ -523,7 +512,6 @@ export default function HomePage() {
                 <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Prénom</th>
                 <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Email</th>
                 <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Rôle</th>
-                <th style={{ padding: 16, textAlign: "left", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Sous-domaines</th>
                 <th style={{ padding: 16, textAlign: "center", color: theme === 'dark' ? palette.white : palette.dark, fontWeight: 800, fontSize: 15 }}>Actions</th>
               </tr>
             </thead>
@@ -538,9 +526,6 @@ export default function HomePage() {
                       {roles.find(r => r.value === u.role)?.label || "?"}
                     </Badge>
                   </td>
-                  <td style={{ padding: 14 }}>
-                    {(u.domaines || []).map(d => <Badge key={d} color={palette.info} palette={palette}>{d}</Badge>)}
-                  </td>
                   <td style={{ padding: 14, textAlign: "center" }}>
                     <button onClick={() => handleEdit(u)} style={{ background: palette.info, color: theme === 'dark' ? palette.white : palette.dark, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, marginRight: 8, cursor: "pointer" }}>Éditer</button>
                     <button onClick={() => handleDelete(u.id)} style={{ background: palette.danger, color: theme === 'dark' ? palette.white : palette.dark, border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 700, cursor: "pointer" }}>Supprimer</button>
@@ -548,7 +533,7 @@ export default function HomePage() {
                 </tr>
               ))}
               {filteredUsers.length === 0 && (
-                <tr><td colSpan={6} style={{ color: palette.gray400, fontStyle: "italic", padding: 22, textAlign: "center", background: palette.secondary }}>Aucun utilisateur</td></tr>
+                <tr><td colSpan={5} style={{ color: palette.gray400, fontStyle: "italic", padding: 22, textAlign: "center", background: palette.secondary }}>Aucun utilisateur</td></tr>
               )}
             </tbody>
           </table>
@@ -566,14 +551,7 @@ export default function HomePage() {
                 <select value={form.role || 2} onChange={e => setForm(f => ({ ...f, role: Number(e.target.value) }))} style={{ padding: 10, borderRadius: 8, border: `1.5px solid ${palette.gray300}` }}>
                   {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Sous-domaines autorisés :</div>
-                  {sousDomaines.map(d => (
-                    <label key={d} style={{ display: "block", marginBottom: 4 }}>
-                      <input type="checkbox" checked={(form.domaines || []).includes(d)} onChange={e => setForm(f => ({ ...f, domaines: e.target.checked ? [...(f.domaines || []), d] : (f.domaines || []).filter(x => x !== d) }))} /> {d}
-                    </label>
-                  ))}
-                </div>
+                {/* Champs de sous-domaine supprimés */}
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "flex-end" }}>
                 <button onClick={() => setShowModal(false)} style={{ background: palette.gray300, color: palette.gray700, border: "none", borderRadius: 8, padding: "10px 24px", fontWeight: 700, cursor: "pointer" }}>Annuler</button>
