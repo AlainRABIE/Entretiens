@@ -78,8 +78,9 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
 
 const adminSidebarLinks = [
   { label: "Home", icon: "🏠", href: "/home" },
+  { label: "Console", icon: "🖥️", href: "/admin/console" },
   { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-  { label: "Journal", icon: "📝", href: "#" },
+  { label: "Domaine", icon: "🌐", href: "/sous-domaine" },
 ];
 
 const userSidebarLinks = [
