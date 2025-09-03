@@ -53,10 +53,10 @@ export const palettes = {
 // Configuration des liens de la sidebar
 export const sidebarLinks: { label: string; icon: string; href: string; adminOnly?: boolean }[] = [
 	{ label: "Home", icon: "🏠", href: "/home" },
+	{ label: "Console", icon: "�️", href: "/admin/console", adminOnly: true },
 	{ label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-	{ label: "Mon Profil", icon: "👤", href: "/profil" },
 	{ label: "Domaine", icon: "🌐", href: "/sous-domaine" },
-	{ label: "Console", icon: "🖥️", href: "/admin/console", adminOnly: true },
+	{ label: "Mon Profil", icon: "�", href: "/profil" },
 ];
 
 // Composant Sidebar

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { Sidebar as SharedSidebar } from "../components/SharedComponents";
 
 type Utilisateur = {
 	id: number;
@@ -84,94 +85,13 @@ const getDomaineColor = (domaineName: string, palette: any) => {
 
 const sousDomaines = ["admin.monsite.com", "client.monsite.com"];
 
-const sidebarLinks = [
-	{ label: "Home", icon: "🏠", href: "/home" },
-	{ label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-	{ label: "Mon Profil", icon: "👤", href: "/profil" },
-	{ label: "Sous-domaines", icon: "🌐", href: "/sous-domaine" },
-];
+// Utiliser la Sidebar partagée pour des liens cohérents
 
 const Badge = ({ color, children, palette }: { color: string; children: any; palette: any }) => (
 	<span style={{ background: color, color: palette.white, borderRadius: 8, padding: "2px 10px", fontSize: 13, fontWeight: 700, marginRight: 6 }}>{children}</span>
 );
 
-const Sidebar = ({ onLogout, open, palette }: { onLogout: () => void; open: boolean; palette: any }) => (
-	<aside
-		style={{
-			width: open ? 220 : 0,
-			background: palette.secondary,
-			color: palette.dark,
-			minHeight: "100vh",
-			display: "flex",
-			flexDirection: "column",
-			boxShadow: open ? "2px 0 16px #0002" : undefined,
-			transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
-			overflow: "hidden",
-			position: "fixed",
-			top: 64,
-			left: 0,
-			zIndex: 100,
-			borderTopRightRadius: 18,
-			borderBottomRightRadius: 18,
-		}}
-	>
-		<div style={{ height: 32 }} />
-		<nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
-			{sidebarLinks.map(link => (
-				<a
-					key={link.label}
-					href={link.href}
-					style={{
-						color: palette.dark,
-						fontWeight: 600,
-						textDecoration: "none",
-						borderRadius: 10,
-						padding: "10px 16px",
-						margin: "2px 0",
-						display: "flex",
-						alignItems: "center",
-						gap: 10,
-						fontSize: 15,
-						transition: "background 0.18s",
-					}}
-					onMouseOver={e => (e.currentTarget.style.background = palette.accent)}
-					onMouseOut={e => (e.currentTarget.style.background = "")}
-				>
-					<span style={{ fontSize: 18 }}>{link.icon}</span>
-					{link.label}
-				</a>
-			))}
-		</nav>
-		<div style={{ padding: "0 10px", marginBottom: "20px" }}>
-			<button
-				onClick={onLogout}
-				style={{
-					width: "100%",
-					color: palette.white,
-					backgroundColor: palette.danger,
-					fontWeight: 600,
-					textDecoration: "none",
-					borderRadius: 10,
-					padding: "10px 16px",
-					margin: "2px 0",
-					display: "flex",
-					alignItems: "center",
-					gap: 10,
-					fontSize: 15,
-					border: "none",
-					cursor: "pointer",
-					transition: "background 0.18s",
-				}}
-				onMouseOver={e => (e.currentTarget.style.backgroundColor = palette.warning)}
-				onMouseOut={e => (e.currentTarget.style.backgroundColor = palette.danger)}
-			>
-				<span style={{ fontSize: 18 }}>🚪</span>
-				Déconnexion
-			</button>
-		</div>
-		<div style={{ flex: 0, height: 24 }} />
-	</aside>
-);
+// Sidebar locale supprimée au profit de la Sidebar partagée
 
 export default function UtilisateurPage() {
 	const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
@@ -358,7 +278,7 @@ export default function UtilisateurPage() {
 				</div>
 			</header>
 			{/* Sidebar */}
-			<Sidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} />
+			<SharedSidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} role={1} />
 			{/* Main content */}
 					<main
 						style={{

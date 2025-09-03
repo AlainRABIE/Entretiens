@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "../../lib/supabaseClient";
+import { Sidebar as SharedSidebar } from "../components/SharedComponents";
 const ChartComponent = dynamic(() => import("./ChartComponent"), { ssr: false });
 const RolePieChart = dynamic(() => import("./RolePieChart"), { ssr: false });
 
@@ -76,73 +77,6 @@ const Badge = ({ color, children, palette }: { color: string; children: any; pal
 );
 
 
-const adminSidebarLinks = [
-  { label: "Home", icon: "🏠", href: "/home" },
-  { label: "Console", icon: "🖥️", href: "/admin/console" },
-  { label: "Utilisateurs", icon: "👤", href: "/Utilisateur" },
-  { label: "Domaine", icon: "🌐", href: "/sous-domaine" },
-];
-
-const userSidebarLinks = [
-  { label: "Accueil", icon: "🏠", href: "/home" },
-  { label: "Mon Profil", icon: "👤", href: "/profil" },
-];
-
-
-
-const Sidebar = ({ onLogout, open, palette, role }: { onLogout: () => void; open: boolean; palette: any; role: number }) => {
-  const links = role === 2 ? userSidebarLinks : adminSidebarLinks;
-  return (
-    <aside
-      style={{
-        width: open ? 220 : 0,
-        background: palette.secondary,
-        color: palette.dark,
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: open ? "2px 0 16px #0002" : undefined,
-        transition: "width 0.3s cubic-bezier(.4,2,.6,1)",
-        overflow: "hidden",
-        position: "fixed",
-        top: 64,
-        left: 0,
-        zIndex: 100,
-        borderTopRightRadius: 18,
-        borderBottomRightRadius: 18,
-      }}
-    >
-      <div style={{ height: 32 }} />
-      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
-        {links.map(link => (
-          <a
-            key={link.label}
-            href={link.href}
-            style={{
-              color: palette.dark,
-              fontWeight: 600,
-              textDecoration: "none",
-              borderRadius: 10,
-              padding: "10px 16px",
-              margin: "2px 0",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              fontSize: 15,
-              transition: "background 0.18s",
-            }}
-            onMouseOver={e => (e.currentTarget.style.background = palette.accent)}
-            onMouseOut={e => (e.currentTarget.style.background = "")}
-          >
-            <span style={{ fontSize: 18 }}>{link.icon}</span>
-            {link.label}
-          </a>
-        ))}
-      </nav>
-      <div style={{ flex: 0, height: 24 }} />
-    </aside>
-  );
-};
 
 export default function HomePage() {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
@@ -330,7 +264,7 @@ export default function HomePage() {
           </div>
         </header>
         {/* Sidebar utilisateur */}
-        <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={palette} role={2} />
+  <SharedSidebar onLogout={handleLogout} open={sidebarOpen} palette={palette} role={2} />
         {/* Contenu utilisateur simple */}
         <main style={{
           flex: 1,
@@ -439,7 +373,7 @@ export default function HomePage() {
         </div>
       </header>
       {/* Sidebar */}
-  <Sidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} role={userRole || 1} />
+  <SharedSidebar onLogout={handleLogout} open={sidebarOpen} palette={{...palette, primary: palette.secondary}} role={userRole || 1} />
       {/* Main content */}
       <main
         style={{
